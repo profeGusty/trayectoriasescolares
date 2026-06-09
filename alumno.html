@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Trayectoria Escolar</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <!-- Cargamos los estilos específicos para las tablas y tarjetas de la trayectoria -->
+    <link rel="stylesheet" href="css/trayectoria.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+</head>
+<body>
+
+    <div class="contenedor-trayectoria">
+        <header class="encabezado-alumno">
+            <button onclick="window.location.href='index.html'" class="btn-volver">⬅ Volver</button>
+            <h1 id="nombre-alumno">Cargando Estudiante...</h1>
+            <p id="curso-alumno">Curso: --</p>
+            <p id="dni-visual">DNI: --</p>
+        </header>
+
+        <main class="bloques-trayectoria">
+            
+            <!-- 1. INTENSIFICACIONES 2025 -->
+            <section class="tarjeta-bloque">
+                <h2>📐 Materias a Intensificar (Pendientes 2025)</h2>
+                <div id="lista-intensificaciones" class="lista-vacia">Cargando información...</div>
+            </section>
+
+            <!-- 2. RECURSADAS -->
+            <section class="tarjeta-bloque">
+                <h2>🔄 Materias que Recursa este Ciclo</h2>
+                <div id="lista-recursadas" class="lista-vacia">Cargando información...</div>
+            </section>
+
+            <!-- 3. OBSERVACIONES -->
+            <section class="tarjeta-bloque">
+                <h2>📝 Observaciones y Anotaciones Particularidades</h2>
+                <p id="texto-observaciones" class="texto-bloque">Sin observaciones registradas.</p>
+            </section>
+
+            <!-- 4. BOLETÍN DE CALIFICACIONES -->
+            <section class="tarjeta-bloque tarjeta-boletin">
+                <h2>📊 Boletín de Calificaciones Actual</h2>
+                <div class="tabla-responsiva">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Materia</th>
+                                <th>1er Inf. Avance</th>
+                                <th>1er Cuat.</th>
+                                <th>2do Inf. Avance</th>
+                                <th>2do Cuat.</th>
+                                <th>Nota Anual</th>
+                                <th>Nota Final</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpo-boletin">
+                            <tr>
+                                <td colspan="7" class="text-center">Cargando boletín...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+             <!-- Botón de retorno al final de la trayectoria (Ideal para celulares) -->
+            <div style="margin-top: 25px; text-align: center;">
+                <button onclick="window.location.href='index.html'" class="btn-secundario" style="max-width: 200px; padding: 12px; font-weight: bold; border: 1px solid #cbd5e1;">
+                    ⬅ Volver al Inicio / Salir
+                </button>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts de carga y conexión -->
+    <script src="js/conexion.js"></script>
+    <script src="js/alumno-vista.js"></script>
+</body>
+</html>

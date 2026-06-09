@@ -1,0 +1,175 @@
+/* VARIABLES DE DISEÑO (Colores institucionales y limpios) */
+:root {
+    --color-primario: #1e3a8a; /* Azul escolar */
+    --color-secundario: #0284c7; /* Azul claro */
+    --color-exito: #16a34a; /* Verde para notas aprobadas/TEA */
+    --color-fondo: #f8fafc; /* Gris muy claro para el fondo */
+    --color-tarjeta: #ffffff; /* Blanco para los bloques de contenido */
+    --color-texto: #1e293b; /* Gris oscuro para lectura cómoda */
+    --color-error: #dc2626; /* Rojo para alertas */
+}
+
+/* ESTILOS GENERALES */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 15px;
+}
+
+/* CONTENEDOR PRINCIPAL */
+.contenedor-inicio {
+    width: 100%;
+    max-width: 480px; /* Tamaño ideal para simular una app móvil en PC */
+    background: var(--color-tarjeta);
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+header {
+    text-align: center;
+}
+
+header h1 {
+    font-size: 1.6rem;
+    color: var(--color-tarjeta);
+    margin-bottom: 5px;
+}
+
+header p {
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* TARJETAS Y FORMULARIOS */
+.tarjeta-acceso h2 {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+}
+
+.tarjeta-acceso p {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+.campo-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 15px;
+}
+
+.campo-grupo label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.campo-grupo input {
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.campo-grupo input:focus {
+    outline: none;
+    border-color: var(--color-secundario);
+}
+
+/* BOTONES */
+button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-principal {
+    background-color: var(--color-primario);
+    color: white;
+}
+
+.btn-principal:hover {
+    background-color: #172554;
+}
+
+.btn-secundario {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-size: 0.9rem;
+}
+
+.btn-secundario:hover {
+    background-color: #e2e8f0;
+}
+
+.btn-login {
+    background-color: var(--color-secundario);
+    color: white;
+    margin-top: 5px;
+}
+
+/* SECCIÓN INFERIOR (PERSONAL) */
+.acceso-personal {
+    border-top: 1px solid #f1f5f9;
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#seccion-login-personal {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+#seccion-login-personal h3 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+    color: #334155;
+}
+
+/* UTILIDADES */
+.oculto {
+    display: none !important;
+}
+
+.mensaje-error {
+    color: var(--color-error);
+    font-size: 0.85rem;
+    margin-top: 8px;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* DISEÑO RESPONSIVO PARA PANTALLAS GRANDES (ESCRITORIO) */
+@media (min-width: 768px) {
+    .contenedor-inicio {
+        max-width: 550px;
+        padding: 40px 30px;
+    }
+}

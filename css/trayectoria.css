@@ -1,0 +1,93 @@
+.contenedor-trayectoria {
+    width: 100%;
+    max-width: 900px; /* Más ancho para que el boletín se vea cómodo en PC */
+    margin: 20px auto;
+}
+
+.encabezado-alumno {
+    background: var(--color-primario);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.encabezado-alumno h1 {
+    font-size: 1.8rem;
+    margin-top: 10px;
+}
+
+.btn-volver {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    width: auto;
+    font-size: 0.9rem;
+}
+
+.bloques-trayectoria {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.tarjeta-bloque {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+}
+
+.tarjeta-bloque h2 {
+    font-size: 1.15rem;
+    color: var(--color-primario);
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+
+.elemento-lista {
+    background: #f8fafc;
+    padding: 12px;
+    border-left: 4px solid var(--color-secundario);
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+}
+
+/* TABLA DEL BOLETÍN */
+.tabla-responsiva {
+    width: 100%;
+    overflow-x: auto; /* Permite scroll horizontal solo en celulares */
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 650px; /* Forzamos un ancho mínimo para que no se amontone en el celular */
+    font-size: 0.9rem;
+}
+
+th, td {
+    border: 1px solid #e2e8f0;
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+}
+
+tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+.valorativo {
+    font-weight: bold;
+    color: #0f172a;
+}

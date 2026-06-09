@@ -1,0 +1,235 @@
+.contenedor-panel {
+    width: 100%;
+    max-width: 1100px;
+    margin: 10px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.barra-superior {
+    background: #0f172a;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.barra-superior h1 { font-size: 1.4rem; }
+.barra-superior p { font-size: 0.85rem; color: #94a3b8; }
+
+.btn-salir {
+    background: #334155;
+    color: white;
+    width: auto;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+}
+
+.tarjeta-panel {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+}
+
+.barra-acciones {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.barra-acciones button {
+    width: auto;
+    padding: 12px 20px;
+}
+
+.tarjeta-formulario {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.grid-formulario {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.span-2 {
+    grid-column: span 1;
+}
+
+@media (min-width: 600px) {
+    .span-2 { grid-column: span 2; }
+}
+
+.campo-grupo input, .campo-grupo select {
+    padding: 10px;
+    border: 2px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+
+/* OPTIMIZACIÓN DE TABLAS DESCOMPRIMIDAS */
+.tabla-gestion-estudiantes th, .tabla-gestion-estudiantes td,
+.tabla-boletin-edicion th, .tabla-boletin-edicion td {
+    padding: 14px 12px; /* Incrementamos el espaciado para que no esté comprimido */
+    font-size: 0.95rem;
+}
+
+.tabla-boletin-edicion select, .tabla-boletin-edicion input {
+    padding: 6px;
+    font-size: 0.9rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.grupo-busqueda {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.grupo-busqueda input {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #cbd5e1;
+    border-radius: 8px;
+}
+
+.grupo-busqueda button { width: auto; }
+
+.alerta-alumno-seleccionado {
+    background: #eff6ff;
+    border-left: 5px solid var(--color-secundario);
+    padding: 15px;
+    border-radius: 0 12px 12px 0;
+    margin-bottom: 15px;
+}
+
+.pestanas-navegacion {
+    display: flex;
+    gap: 5px;
+    border-bottom: 2px solid #cbd5e1;
+    margin-bottom: 15px;
+    overflow-x: auto;
+}
+
+.tab-btn {
+    background: none;
+    color: #64748b;
+    border-radius: 8px 8px 0 0;
+    padding: 10px 15px;
+    width: auto;
+    white-space: nowrap;
+}
+
+.tab-btn.activo {
+    background: #cbd5e1;
+    color: var(--color-primario);
+    font-weight: bold;
+}
+
+.contenedor-dias-bloque {
+    background: #f1f5f9;
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+.contenedor-dias-bloque h4 {
+    font-size: 0.85rem;
+    color: #475569;
+    margin-bottom: 8px;
+}
+
+.campos-horario-flex {
+    display: flex;
+    gap: 10px;
+}
+
+.campos-horario-flex select { flex: 1; }
+
+.btn-verde { background-color: var(--color-exito); }
+.btn-azul { background-color: var(--color-secundario); }
+
+/* POP-UP / MODAL ESTILOS */
+.modal-fondo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-contenido {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    position: relative;
+}
+
+.modal-cerrar {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    color: #64748b;
+}
+
+.mensaje-exito {
+    color: var(--color-exito);
+    font-size: 0.95rem;
+    margin-top: 10px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.margin-top-sm { margin-top: 10px; }
+
+.select-boletin {
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    font-weight: 600;
+    color: #1e293b;
+    background-color: #ffffff;
+    cursor: pointer;
+}
+
+.input-boletin {
+    width: 55px;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    text-align: center;
+    font-size: 0.95rem;
+}
+
+.input-boletin-destacado {
+    width: 55px;
+    padding: 6px;
+    border-radius: 6px;
+    border: 2px solid var(--color-secundario);
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.95rem;
+    background-color: #f0fdf4;
+}

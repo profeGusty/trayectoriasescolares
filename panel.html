@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Gestión Escolar</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <link rel="stylesheet" href="css/panel.css">
+    <!-- <script src="https://jsdelivr.net"></script> -->
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+</head>
+<body>
+
+    <div class="contenedor-panel">
+        <header class="barra-superior">
+            <div>
+                <h1>💼 Panel Escolar</h1>
+                <p id="info-usuario">Cargando usuario...</p>
+            </div>
+            <button id="btn-cerrar-sesion" class="btn-salir">Cerrar Sesión 🚪</button>
+        </header>
+
+        <!-- SECCIÓN DE ACCIONES DE MATRICULACIÓN Y MATERIAS -->
+        <section class="tarjeta-panel barra-acciones">
+            <button id="btn-toggle-nuevo-alumno" class="btn-principal btn-verde">➕ Registrar Nuevo Estudiante</button>
+            <button id="btn-abrir-materia-modal" class="btn-principal btn-azul">📚 Agregar Nueva Materia</button>
+        </section>
+
+        <!-- FORMULARIO NUEVO ESTUDIANTE (OCULTO POR DEFECTO) -->
+        <div id="seccion-nuevo-alumno" class="oculto tarjeta-formulario">
+            <h3>Formulario de Matriculación (Ciclo 2026)</h3>
+            <form id="form-nuevo-estudiante" class="grid-formulario">
+                <div class="campo-grupo">
+                    <label for="new-apellido">Apellido/s:</label>
+                    <input type="text" id="new-apellido" required placeholder="Ej: Pérez">
+                </div>
+                <div class="campo-grupo">
+                    <label for="new-nombre">Nombre/s:</label>
+                    <input type="text" id="new-nombre" required placeholder="Ej: Juan Carlos">
+                </div>
+                <div class="campo-grupo">
+                    <label for="new-dni">Número de DNI (Sin puntos):</label>
+                    <input type="text" id="new-dni" required pattern="[0-9]{7,8}" placeholder="Ej: 46123456">
+                </div>
+                <div class="campo-grupo">
+                    <label for="new-curso">Curso Asignado:</label>
+                    <select id="new-curso" required class="select-curso-global"></select>
+                </div>
+                <button type="submit" class="btn-principal span-2">Confirmar Inscripción</button>
+            </form>
+            <div id="mensaje-nuevo-alumno" class="mensaje-exito"></div>
+        </div>
+
+        <!-- 2. Estructura del Pop-up (Modal) oculto -->
+                <div id="modal-materia" class="oculto" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;">
+                    <div style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px;">
+                        <h3>Dar de Alta Nueva Materia</h3>
+                        <form id="form-nueva-materia" style="display: grid; gap: 10px; margin-top: 15px;">
+                            <div class="campo-grupo">
+                                <label>Nombre de la Materia:</label>
+                                <input type="text" id="mat-nombre" required placeholder="Ej: Matemática">
+                            </div>
+                            <div class="campo-grupo">
+                                <label>Siglas / Abreviatura:</label>
+                                <input type="text" id="mat-siglas" required placeholder="Ej: MAT">
+                            </div>
+                            <div class="campo-grupo">
+                                <label>Curso Asignado:</label>
+                                <select id="mat-curso" class="select-curso-global"></select>
+                            </div>
+                            <button type="submit" class="btn-principal">Guardar Materia</button>
+                            <button type="button" id="btn-cerrar-modal" class="btn-secundario" style="margin-top: 5px;">Cancelar</button>
+                        </form>
+                    </div>
+                </div>
+
+        <!-- BUSCADOR DE ESTUDIANTES -->
+        <section class="tarjeta-panel">
+            <h2>🔍 Buscador de Estudiantes</h2>
+            <div class="grupo-busqueda">
+                <input type="text" id="input-busqueda" placeholder="Buscar por DNI, Apellido, Nombre o Curso...">
+                <button id="btn-buscar" class="btn-principal">Buscar</button>
+            </div>
+            
+            <div class="tabla-responsiva margin-top">
+                <table class="tabla-gestion-estudiantes">
+                    <thead>
+                        <tr>
+                            <th>DNI</th>
+                            <th>Apellido y Nombre</th>
+                            <th>Curso</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultados-estudiantes">
+                        <tr>
+                            <td colspan="4" class="text-center">Ingresá un término para buscar.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECCIÓN DE EDICIÓN DE TRAYECTORIA -->
+        <main id="seccion-edicion-alumno" class="oculto">
+            <div class="alerta-alumno-seleccionado">
+                <h3>Estudiante seleccionado: <span id="nombre-alumno-sel">--</span></h3>
+                <p>DNI: <span id="dni-alumno-sel">--</span> | Curso: <span id="curso-alumno-sel">--</span></p>
+            </div>
+
+            <div class="pestanas-navegacion">
+                <button class="tab-btn activo" onclick="cambiarPestana('pestana-boletin')">📊 Boletín</button>
+                <button class="tab-btn" onclick="cambiarPestana('pestana-intensificar')">📐 Intensificar</button>
+                <button class="tab-btn" onclick="cambiarPestana('pestana-recursar')">🔄 Recursar</button>
+                <button class="tab-btn" onclick="cambiarPestana('pestana-observaciones')">📝 Obs.</button>
+            </div>
+
+            <!-- 1. Pestaña Boletín -->
+            <div id="pestana-boletin" class="tab-contenido">
+                <h3>Actualizar Calificaciones del Ciclo</h3>
+                <div class="tabla-responsiva">
+                    <table class="tabla-boletin-edicion">
+                        <thead>
+                            <tr>
+                                <th>Materia</th>
+                                <th>1° Inf (Valorativo)</th>
+                                <th>1° Cuat (1-10)</th>
+                                <th>2° Inf (Valorativo)</th>
+                                <th>2° Cuat (1-10)</th>
+                                <th>Anual (1-10)</th>
+                                <th>Final (1-10)</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-edicion-boletin"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 2. Pestaña Intensificaciones -->
+            <div id="pestana-intensificar" class="tab-contenido oculto">
+                <h3>Cargar Materia a Intensificar 2025 (Máx 5)</h3>
+                <!-- <form id="form-intensificar" class="formulario-panel"> -->
+                    <form id="form-intensificar" class="formulario-panel" onsubmit="procesarAltaIntensificacion(event)">
+
+                    <div class="campo-grupo">
+                        <label>Seleccionar Materia:</label>
+                        <select id="int-materia" required class="select-materias-autocompletar"></select>
+                    </div>
+                    
+                    <div class="contenedor-dias-bloque">
+                        <h4>Horario Bloque 1 (Obligatorio)</h4>
+                        <div class="campos-horario-flex">
+                            <select id="int-dia" required class="select-dia-global"></select>
+                            <select id="int-horario" required class="select-horario-global"></select>
+                        </div>
+                    </div>
+
+                    <div class="contenedor-dias-bloque margin-top-sm">
+                        <h4>Horario Bloque 2 (Opcional - Materias de 4 horas)</h4>
+                        <div class="campos-horario-flex">
+                            <select id="int-dia-2" class="select-dia-global">
+                                <option value="">-- No requiere segundo día --</option>
+                            </select>
+                            <select id="int-horario-2" class="select-horario-global">
+                                <option value="">-- No requiere segundo horario --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="campo-grupo" style="margin-top: 15px;">
+                        <label for="int-materia-destino">Materia/Espacio donde intensifica:</label>
+                        <input type="text" id="int-materia-destino" required placeholder="Ej: Inglés de 6to 1ra">
+                    </div>
+                    <button type="submit" class="btn-principal margin-top-sm">Agregar Intensificación</button>
+                </form>
+                <div id="lista-int-cargar" class="lista-items-panel"></div>
+            </div>
+
+            <!-- 3. Pestaña Recursadas -->
+            <div id="pestana-recursar" class="tab-contenido oculto">
+                <h3>Cargar Materia a Recursar (Máx 5)</h3>
+                <!-- <form id="form-recursar" class="formulario-panel"> -->
+                    <form id="form-recursar" class="formulario-panel" onsubmit="procesarAltaRecursada(event)">
+
+                    <div class="campo-grupo">
+                        <label>Seleccionar Materia:</label>
+                        <select id="rec-materia" required class="select-materias-autocompletar"></select>
+                    </div>
+                    <div class="campo-grupo">
+                        <label>Curso donde recursa:</label>
+                        <select id="rec-curso" required class="select-curso-global"></select>
+                    </div>
+
+                    <div class="contenedor-dias-bloque">
+                        <h4>Horario Bloque 1 (Obligatorio)</h4>
+                        <div class="campos-horario-flex">
+                            <select id="rec-dia" required class="select-dia-global"></select>
+                            <select id="rec-horario" required class="select-horario-global"></select>
+                        </div>
+                    </div>
+
+                    <div class="contenedor-dias-bloque margin-top-sm">
+                        <h4>Horario Bloque 2 (Opcional)</h4>
+                        <div class="campos-horario-flex">
+                            <select id="rec-dia-2" class="select-dia-global">
+                                <option value="">-- No requiere segundo día --</option>
+                            </select>
+                            <select id="rec-horario-2" class="select-horario-global">
+                                <option value="">-- No requiere segundo horario --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-principal margin-top-sm">Agregar Recursada</button>
+                </form>
+                <div id="lista-rec-cargar" class="lista-items-panel"></div>
+            </div>
+
+            <!-- 4. Pestaña Observaciones -->
+            <div id="pestana-observaciones" class="tab-contenido oculto">
+                <h3>Modificar Observaciones del Alumno</h3>
+                <div class="formulario-panel">
+                    <div class="campo-grupo">
+                        <label>Anotación particular:</label>
+                        <textarea id="textarea-obs" rows="4" placeholder="Materias que no cursa, excepciones, etc."></textarea>
+                    </div>
+                    <button id="btn-guardar-obs" class="btn-principal" onclick="guardarObservacionesAlumno()">
+                        Guardar Observaciones
+                    </button>
+
+                </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts de carga y conexión -->
+
+    <script src="js/conexion.js"></script>
+    <script src="js/panel.js"></script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trayectorias Estudiantiles - Portal Escolar - tecnica 5</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/conexion.js?v=2"></script>
+    <script src="js/auth.js?v=2"></script>
+    <script src="js/alumno.js?v=2"></script>
+</head>
+<body>
+
+    <div class="contenedor-inicio">
+        <header>
+            <h1>🏫 Sistema de Trayectorias Escolares</h1>
+            <p>Ciclo Lectivo 2026</p>
+        </header>
+
+        <!-- SECCIÓN PARA EL ESTUDIANTE -->
+        <main class="tarjeta-acceso">
+            <h2>Consulta de Alumnos</h2>
+            <p>Ingresá tu DNI para ver tus materias, recursadas y boletín actual.</p>
+            
+            <form id="form-consulta-alumno">
+                <div class="campo-grupo">
+                    <label for="dni-alumno">Número de DNI:</label>
+                    <input type="text" id="dni-alumno" placeholder="Ej: 45678912" required pattern="[0-9]{7,8}">
+                </div>
+                <button type="submit" class="btn-principal">Ver mi Trayectoria</button>
+            </form>
+            <div id="mensaje-error-alumno" class="mensaje-error"></div>
+        </main>
+
+        <!-- SECCIÓN PARA EL PERSONAL (PRECEPTORAS / ADMIN) -->
+        <footer class="acceso-personal">
+            <button id="btn-mostrar-login" class="btn-secundario">🔐 Acceso Personal Escolar</button>
+            
+            <!-- Formulario de Login oculto por defecto -->
+            <div id="seccion-login-personal" class="oculto">
+                <h3>Ingreso Preceptoras / Admin</h3>
+                <form id="form-login-personal">
+                    <div class="campo-grupo">
+                        <label for="email-personal">Correo Electrónico:</label>
+                        <input type="email" id="email-personal" placeholder="correo@escuela.com" required>
+                    </div>
+                    <div class="campo-grupo">
+                        <label for="password-personal">Contraseña:</label>
+                        <input type="password" id="password-personal" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-login">Iniciar Sesión</button>
+                </form>
+                <div id="mensaje-error-personal" class="mensaje-error"></div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts de lógica del proyecto -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/conexion.js?v=3"></script>
+    <script src="js/auth.js?v=3"></script>
+    <script src="js/alumno.js?v=3"></script> -->
+</body>
+</html>
