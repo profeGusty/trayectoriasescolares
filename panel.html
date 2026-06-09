@@ -169,9 +169,10 @@
                         </div>
                     </div>
                     <div class="campo-grupo" style="margin-top: 15px;">
-                        <label for="int-materia-destino">Materia/Espacio donde intensifica:</label>
-                        <input type="text" id="int-materia-destino" required placeholder="Ej: Inglés de 6to 1ra">
-                    </div>
+                        <label for="int-materia-destino">Materia donde intensifica:</label>
+                        <select id="int-materia-destino" class="select-boletin" required>
+                            <option value="">Cargando materias...</option>
+        </select>                    </div>
                     <button type="submit" class="btn-principal margin-top-sm">Agregar Intensificación</button>
                 </form>
                 <div id="lista-int-cargar" class="lista-items-panel"></div>

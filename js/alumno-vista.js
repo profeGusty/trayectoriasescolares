@@ -41,13 +41,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         ]);
 
         // --- Renderizar Intensificaciones ---
-        const contenedorInten = document.getElementById("lista-intensificaciones");
+         const contenedorInten = document.getElementById("lista-intensificaciones");
         if (resIntensifica.data && resIntensifica.data.length > 0) {
-            contenedorInten.innerHTML = resIntensifica.data.map(i => `
-                <div class="elemento-lista">
-                    <strong>${i.materia}</strong> — Horario: ${i.dia} de ${i.horario}
-                </div>
-            `).join('');
+            contenedorInten.innerHTML = resIntensifica.data.map(i => {
+                // Removemos la palabra fija "Horario:" y unimos las dos partes de forma limpia
+                // i.dia ya contiene la cadena "Intensifica en: MATERIA (CURSO)"
+                // i.horario contiene "Lunes de 7:30 a 9:30 y Martes de 9:50 a 11:50"
+                return `
+                    <div class="elemento-lista">
+                        <strong>${i.materia.toUpperCase()}</strong> — ${i.dia} de ${i.horario}
+                    </div>
+                `;
+            }).join('');
         } else {
             contenedorInten.textContent = "No registra materias a intensificar de 2025.";
         }
@@ -55,11 +60,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         // --- Renderizar Recursadas ---
         const contenedorRecur = document.getElementById("lista-recursadas");
         if (resRecursadas.data && resRecursadas.data.length > 0) {
-            contenedorRecur.innerHTML = resRecursadas.data.map(r => `
-                <div class="elemento-lista">
-                    <strong>${r.materia}</strong> en contraturno con <b>${r.curso_recursada}</b> (${r.dia} - ${r.horario})
-                </div>
-            `).join('');
+            contenedorRecur.innerHTML = resRecursadas.data.map(r => {
+                // Limpiamos los textos redundantes si se cargaron con la palabra 'Asignado' en la base de datos
+                let horarioLimpio = r.horario || '';
+                horarioLimpio = horarioLimpio.replace("(Asignado - ", "(").replace("Asignado - ", "");
+
+                // Formateamos para que diga exactamente: MATERIA en CURSO (HORARIO)
+                return `
+                    <div class="elemento-lista">
+                        <strong>${r.materia.toUpperCase()}</strong> en <b>${r.curso_recursada}</b> (${horarioLimpio})
+                    </div>
+                `;
+            }).join('');
         } else {
             contenedorRecur.textContent = "No registra materias cursadas en otros años.";
         }

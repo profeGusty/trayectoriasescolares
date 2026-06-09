@@ -444,14 +444,16 @@ window.guardarFilaBoletin = async function(materiaId) {
     }
 };
 
+// --- REEMPLAZAR EN TU PANEL.JS ---
 async function inicializarAutocompletarMaterias(cursoEstudiante) {
     console.log("Cargando lista de materias para autocompletar...");
     
     const selectIntMateria = document.getElementById("int-materia");
     const selectRecMateria = document.getElementById("rec-materia");
+    const selectIntDestino = document.getElementById("int-materia-destino");
 
     try {
-        // Traemos absolutamente todas las materias cargadas por el admin
+        // Traemos las materias de Supabase
         const { data: materias, error } = await window.supabaseCliente
             .from('materias')
             .select('*')
@@ -460,31 +462,33 @@ async function inicializarAutocompletarMaterias(cursoEstudiante) {
         if (error) throw error;
 
         if (materias && materias.length > 0) {
-            // Generamos las opciones del select en MAYÚSCULAS mostrando a qué curso pertenecen
+            // Generamos las opciones base en MAYÚSCULAS mostrando el curso
             const opcionesHTML = materias.map(m => 
                 `<option value="${m.nombre_materia.toUpperCase()}">${m.nombre_materia.toUpperCase()} (${m.curso})</option>`
             ).join('');
             
-            // Inyectamos las opciones y nos aseguramos de que no queden bloqueados
+            // Inyectamos en cada selector correspondiente
             if (selectIntMateria) {
-                selectIntMateria.innerHTML = opcionesHTML;
-                selectIntMateria.disabled = false; 
+                selectIntMateria.innerHTML = `<option value="">-- Materia que intensifica --</option>` + opcionesHTML;
             }
             if (selectRecMateria) {
-                selectRecMateria.innerHTML = opcionesHTML;
-                selectRecMateria.disabled = false;
+                selectRecMateria.innerHTML = `<option value="">-- Seleccionar Materia a Recursar --</option>` + opcionesHTML;
+            }
+            if (selectIntDestino) {
+                selectIntDestino.innerHTML = `<option value="">-- Materia donde intensifica --</option>` + opcionesHTML;
             }
         } else {
-            // Si el admin no creó materias en el sistema
-            const opcionVacia = `<option value="">-- No hay materias dadas de alta --</option>`;
+            const opcionVacia = `<option value="">-- No hay materias cargadas --</option>`;
             if (selectIntMateria) selectIntMateria.innerHTML = opcionVacia;
             if (selectRecMateria) selectRecMateria.innerHTML = opcionVacia;
+            if (selectIntDestino) selectIntDestino.innerHTML = opcionVacia;
         }
 
     } catch (err) {
-        console.error("Error al poblar los selectores de materias:", err.message);
+        console.error("Error al poblar los selectores:", err.message);
     }
 }
+
 
 window.guardarObservacionesAlumno = async function() {
     console.log("Intentando guardar observaciones para el alumno ID:", alumnoSeleccionadoId);
@@ -514,25 +518,31 @@ window.guardarObservacionesAlumno = async function() {
 
 // --- FUNCIONES GLOBALES PARA INTENSIFICACIONES Y RECURSADAS (AL FINAL DE PANEL.JS) ---
 
+// --- REEMPLAZAR EN TU PANEL.JS ---
 window.procesarAltaIntensificacion = async function(event) {
     event.preventDefault();
     if (!alumnoSeleccionadoId) return alert("Primero debés seleccionar un alumno.");
 
-    const mat = document.getElementById("int-materia").value;
-    const destino = document.getElementById("int-materia-destino").value.trim();
+    const matAdeudada = document.getElementById("int-materia").value;
+    const matDestino = document.getElementById("int-materia-destino").value;
     const d1 = document.getElementById("int-dia").value;
     const h1 = document.getElementById("int-horario").value;
     const d2 = document.getElementById("int-dia-2").value;
     const h2 = document.getElementById("int-horario-2").value;
 
-    // Armamos la cadena solo con los días y horarios reales, quitando la palabra "Asignado"
+    if (!matAdeudada || !matDestino) {
+        alert("Por favor, selecciona ambas materias de los menús desplegables.");
+        return;
+    }
+
+    // Armamos la cadena de horarios reales
     let detalleHorario = `${d1} de ${h1}`;
     if (d2 && h2) {
         detalleHorario += ` y ${d2} de ${h2}`;
     }
 
-    // Guardamos la materia de destino dentro de la descripción o en una nota aclaratoria limpia
-    const descripcionFinal = `Intensifica en: ${destino}`;
+    // Formateamos la aclaración de la materia de destino de manera limpia
+    const descripcionFinal = `Intensifica en: ${matDestino}`;
 
     try {
         const { error } = await window.supabaseCliente
@@ -540,8 +550,8 @@ window.procesarAltaIntensificacion = async function(event) {
             .insert([
                 { 
                     estudiante_id: alumnoSeleccionadoId, 
-                    materia: mat, 
-                    dia: descripcionFinal, // Guardamos aquí la materia destino para no romper la estructura de tablas
+                    materia: matAdeudada, 
+                    dia: descripcionFinal, 
                     horario: detalleHorario 
                 }
             ]);
@@ -550,11 +560,13 @@ window.procesarAltaIntensificacion = async function(event) {
 
         alert("¡Materia a intensificar guardada con éxito!");
         document.getElementById("form-intensificar").reset();
-        cargarIntensificacionesEdicion(); // Forzamos el renderizado del botón eliminar
+        
+        // Refrescamos la lista de abajo para renderizar la nueva tarjeta con su botón eliminar
+        cargarIntensificacionesEdicion();
 
     } catch (err) {
-        console.error(err);
-        alert("Error al guardar en Supabase.");
+        console.error("Error en alta intensificación:", err.message);
+        alert("Ocurrió un error al intentar guardar en Supabase.");
     }
 };
 
