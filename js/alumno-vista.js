@@ -89,18 +89,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (resBoletin.data && resBoletin.data.length > 0) {
             cuerpoBoletin.innerHTML = resBoletin.data.map(b => {
-                // Cambio 2: Forzar el nombre de la materia a MAYÚSCULAS
+                const claseInf1 = b.primer_informe === 'TEA' ? 'valorativo-tea' : b.primer_informe === 'TEP' ? 'valorativo-tep' : b.primer_informe === 'TED' ? 'valorativo-ted' : '';
+                const claseInf2 = b.segundo_informe === 'TEA' ? 'valorativo-tea' : b.segundo_informe === 'TEP' ? 'valorativo-tep' : b.segundo_informe === 'TED' ? 'valorativo-ted' : '';
+                
+                // Forzar el nombre de la materia a MAYÚSCULAS
                 const nombreMateriaMayuscula = (b.materias?.nombre_materia || 'Materia sin nombre').toUpperCase();
                 
                 return `
                     <tr>
                         <td style="text-align: left; font-weight: 600;">${nombreMateriaMayuscula}</td>
-                        <td class="valorativo">${b.primer_informe || '-'}</td>
-                        <td>${b.primer_cuatrimestre !== null ? b.primer_cuatrimestre : '-'}</td>
-                        <td class="valorativo">${b.segundo_informe || '-'}</td>
-                        <td>${b.segundo_cuatrimestre !== null ? b.segundo_cuatrimestre : '-'}</td>
-                        <td><strong>${b.nota_anual !== null ? b.nota_anual : '-'}</strong></td>
-                        <td><mark style="background-color: #fef08a; padding: 2px 6px; border-radius: 4px;"><b>${b.nota_final !== null ? b.nota_final : '-'}</b></mark></td>
+                        <td class="${claseInf1}">${b.primer_informe || '-'}</td>
+                        <td><b>${b.primer_cuatrimestre ?? '-'}</b></td>
+                        <td class="${claseInf2}">${b.segundo_informe || '-'}</td>
+                        <td><b>${b.segundo_cuatrimestre ?? '-'}</b></td>
+                        <td><strong>${b.nota_anual ?? '-'}</strong></td>
+                        <td><span class="nota-final-destacada">${b.nota_final ?? '-'}</span></td>
                     </tr>
                 `;
             }).join('');
@@ -114,3 +117,5 @@ document.addEventListener("DOMContentLoaded", async () => {
         alert("Ocurrió un inconveniente al conectar con los servidores.");
     }
 });
+
+

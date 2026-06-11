@@ -23,6 +23,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         window.location.href = "index.html";
         return;
     }
+    // NUEVO: Ejecutar búsqueda en tiempo real cada vez que la preceptora cambie el curso en el desplegable
+    document.getElementById("select-filtro-curso").addEventListener("change", ejecutarBusqueda);
+
     document.getElementById("info-usuario").textContent = `Conectado como: ${session.user.email}`;
 
     // 2. INYECTAR OPCIONES PREESTABLECIDAS EN LOS SELECTS DE LA PÁGINA
@@ -114,6 +117,7 @@ function configurarComponentesInterfaz() {
     // Modal Materias (Pop-up)
     const modalMateria = document.getElementById("modal-materia");
     document.getElementById("btn-abrir-materia-modal").addEventListener("click", () => modalMateria.classList.remove("oculto"));
+    window.cargarListadoMateriasParaModificar(); // <-- AGREGAR ESTA LÍNEA
     document.getElementById("btn-cerrar-modal").addEventListener("click", () => modalMateria.classList.add("oculto"));
 
     document.getElementById("form-nueva-materia").addEventListener("submit", async (e) => {
@@ -137,27 +141,81 @@ function configurarComponentesInterfaz() {
 // --- BÚSQUEDA ---
 async function ejecutarBusqueda() {
     const termino = document.getElementById("input-busqueda").value.trim();
+    const cursoSeleccionado = document.getElementById("select-filtro-curso").value;
     const tabla = document.getElementById("resultados-estudiantes");
-    if (!termino) return;
 
-    tabla.innerHTML = `<tr><td colspan="4" class="text-center">Buscando...</td></tr>`;
-    const { data } = await window.supabaseCliente.from('estudiantes').select('*')
-        .or(`dni.ilike.%${termino}%,nombre.ilike.%${termino}%,apellido.ilike.%${termino}%,curso_actual.ilike.%${termino}%`);
-
-    if (!data || data.length === 0) {
-        tabla.innerHTML = `<tr><td colspan="4" class="text-center">No se encontraron resultados.</td></tr>`;
+    // Si ambos campos de control están vacíos, no hacemos nada
+    if (!termino && !cursoSeleccionado) {
+        tabla.innerHTML = `<tr><td colspan="4" class="text-center">Por favor, escribí un dato o seleccioná un curso para buscar.</td></tr>`;
         return;
     }
 
-    tabla.innerHTML = data.map(est => `
-        <tr>
-            <td>${est.dni}</td>
-            <td><b>${est.apellido.toUpperCase()}, ${est.nombre}</b></td>
-            <td>${est.curso_actual}</td>
-            <td><button class="btn-principal btn-tabla btn-azul" onclick="seleccionarEstudiante('${est.id}', '${est.nombre} ${est.apellido}', '${est.dni}', '${est.curso_actual}', '${est.observaciones || ''}')">Gestionar Trayectoria ⚙️</button></td>
-        </tr>
-    `).join('');
+    tabla.innerHTML = `<tr><td colspan="4" class="text-center">Buscando en los registros...</td></tr>`;
+    
+    try {
+        let consulta = window.supabaseCliente.from('estudiantes').select('*');
+
+        // --- LÓGICA DE PRIORIDAD ESCOLAR INTELIGENTE ---
+        if (termino) {
+            // PRIORIDAD 1: Si la preceptora escribió un texto (DNI, Nombre o Apellido),
+            // buscamos al alumno en toda la escuela sin importar qué curso esté seleccionado en el menú.
+            consulta = consulta.or(`dni.ilike.%${termino}%,nombre.ilike.%${termino}%,apellido.ilike.%${termino}%`);
+            
+            // Opcional: Limpiamos visualmente el selector de curso para que coincida con lo que pasa por detrás
+            document.getElementById("select-filtro-curso").value = "";
+        } else if (cursoSeleccionado) {
+            // PRIORIDAD 2: Si el cuadro de texto está vacío pero se eligió un curso,
+            // listamos a todos los alumnos que pertenezcan estrictamente a ese grupo.
+            consulta = consulta.eq('curso_actual', cursoSeleccionado);
+        }
+
+        // Ejecutamos la petición ordenando alfabéticamente por apellido
+        const { data, error } = await consulta.order('apellido');
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            tabla.innerHTML = `<tr><td colspan="4" class="text-center">No se encontraron estudiantes para esa búsqueda.</td></tr>`;
+            return;
+        }
+
+        // Renderizar el listado con los botones de gestión y eliminación de alumnos
+        tabla.innerHTML = data.map(est => `
+            <tr>
+                <td>${est.dni}</td>
+                <td><b>${est.apellido.toUpperCase()}, ${est.nombre}</b></td>
+                <td>${est.curso_actual}</td>
+                <td>
+                    <div style="display: flex; gap: 5px; justify-content: center;">
+                        <button class="btn-principal btn-tabla btn-azul" onclick="seleccionarEstudiante('${est.id}', '${est.nombre} ${est.apellido}', '${est.dni}', '${est.curso_actual}', '${est.observaciones || ''}')">Gestionar ⚙️</button>
+                        <button class="btn-secundario btn-tabla" style="color: var(--color-error); border: 1px solid #fca5a5; background: #fff5f5; padding: 4px 8px; width: auto;" onclick="window.eliminarEstudianteDeRaiz('${est.id}', '${est.apellido.toUpperCase()}')">Borrar 🗑️</button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+
+    } catch (err) {
+        console.error("Error en la búsqueda:", err.message);
+        tabla.innerHTML = `<tr><td colspan="4" class="text-center" style="color: var(--color-error);">Error al conectar con los registros de Supabase.</td></tr>`;
+    }
 }
+
+
+// NUEVA FUNCIÓN GLOBAL PARA BORRAR ALUMNOS DESDE LA TABLA
+window.eliminarEstudianteDeRaiz = async function(idAlumno, apellido) {
+    if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente al estudiante ${apellido}? Se borrará también todo su boletín y trayectoria.`)) return;
+
+    try {
+        const { error } = await window.supabaseCliente.from('estudiantes').delete().eq('id', idAlumno);
+        if (error) throw error;
+        alert("Estudiante eliminado del sistema correctamente.");
+        ejecutarBusqueda(); // Refrescar la tabla actual
+    } catch (err) {
+        alert("No se pudo eliminar al estudiante.");
+    }
+};
+
+
 
 async function seleccionarEstudiante(id, nombre, dni, curso, obs) {
     alumnoSeleccionadoId = id;
@@ -610,3 +668,36 @@ window.procesarAltaRecursada = async function(event) {
     }
 };
 
+
+// Función para listar las materias adentro del pop-up con botón de eliminar
+window.cargarListadoMateriasParaModificar = async function() {
+    const contenedor = document.getElementById("lista-materias-globales-borrar");
+    if (!contenedor) return;
+
+    try {
+        const { data: materias } = await window.supabaseCliente.from('materias').select('*').order('curso').order('nombre_materia');
+        
+        if (!materias || materias.length === 0) {
+            contenedor.innerHTML = `<p style="font-size:0.85rem; color:#64748b;">No hay materias cargadas en la institución.</p>`;
+            return;
+        }
+
+        contenedor.innerHTML = materias.map(m => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#f1f5f9; padding:6px 10px; border-radius:6px; font-size:0.85rem;">
+                <span><b>${m.siglas}</b> - ${m.nombre_materia.toUpperCase()} (${m.curso})</span>
+                <button type="button" style="color:var(--color-error); background:none; font-weight:bold; width:auto; padding:2px 6px;" onclick="window.eliminarMateriaEscuela(${m.id})">❌</button>
+            </div>
+        `).join('');
+    } catch(err) {}
+};
+
+window.eliminarMateriaEscuela = async function(materiaId) {
+    if (!confirm("¿Estás seguro de borrar esta materia? Se eliminará de todos los boletines de los alumnos que pertenezcan a este curso.")) return;
+
+    try {
+        await window.supabaseCliente.from('materias').delete().eq('id', materiaId);
+        alert("Materia eliminada correctamente.");
+        window.cargarListadoMateriasParaModificar();
+        if (alumnoSeleccionadoId) cargarBoletinEdicion(); // Recargar el boletín si hay ficha abierta
+    } catch (err) {}
+};

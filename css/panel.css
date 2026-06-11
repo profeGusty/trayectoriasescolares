@@ -233,3 +233,74 @@
     font-size: 0.95rem;
     background-color: #f0fdf4;
 }
+
+
+/* 1. Ajustar el buscador para que en el celular se apilen los campos verticalmente */
+.grupo-busqueda {
+    display: flex;
+    flex-direction: column; /* Apila el input, select y botón uno abajo del otro */
+    gap: 12px;
+    width: 100%;
+}
+
+.grupo-busqueda input, 
+.grupo-busqueda select, 
+.grupo-busqueda button {
+    width: 100% !important; /* Fuerza a que ocupen todo el ancho del celular */
+    box-sizing: border-box;
+}
+
+/* 2. Forzar que la tabla se pueda desplazar con el dedo de forma lateral sin desbordar el contenedor */
+.tabla-responsiva {
+    width: 100%;
+    overflow-x: auto; /* Activa el desplazamiento horizontal */
+    -webkit-overflow-scrolling: touch; /* Suaviza el scroll en iPhones */
+    margin-top: 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+table {
+    width: 100%;
+    min-width: 550px; /* Ancho mínimo para que las columnas tengan espacio y no se compriman las letras */
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px 8px;
+    font-size: 0.85rem; /* Achicamos un poco la letra en celulares para optimizar espacio */
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* 3. Acomodar los botones de acción para que entren cómodos */
+td div {
+    display: flex;
+    flex-direction: row; /* Mantiene los botones lado a lado */
+    gap: 6px;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-tabla {
+    padding: 8px 12px !important;
+    font-size: 0.8rem !important;
+    width: auto !important;
+    white-space: nowrap; /* Evita que el texto del botón se parta en dos renglones */
+}
+
+/* --- REGLA PARA PANTALLAS GRANDES (COMPUTADORAS) --- */
+@media (min-width: 768px) {
+    .grupo-busqueda {
+        flex-direction: row; /* En PC vuelven a ponerse uno al lado del otro */
+    }
+    
+    .grupo-busqueda input { flex: 2; }
+    .grupo-busqueda select { flex: 1; }
+    .grupo-busqueda button { width: auto !important; }
+    
+    th, td {
+        font-size: 0.95rem; /* En PC la letra vuelve a su tamaño normal */
+        padding: 12px;
+    }
+}

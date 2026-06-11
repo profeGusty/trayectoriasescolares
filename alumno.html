@@ -5,13 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Trayectoria Escolar</title>
     <link rel="stylesheet" href="css/estilos.css">
-    <!-- Cargamos los estilos específicos para las tablas y tarjetas de la trayectoria -->
     <link rel="stylesheet" href="css/trayectoria.css">
-        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-
-</head>
-<body>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <body>
 
     <div class="contenedor-trayectoria">
         <header class="encabezado-alumno">
@@ -21,8 +17,9 @@
             <p id="dni-visual">DNI: --</p>
         </header>
 
-        <main class="bloques-trayectoria">
-            
+
+        <main class="bloques-trayectoria">        
+
             <!-- 1. INTENSIFICACIONES 2025 -->
             <section class="tarjeta-bloque">
                 <h2>📐 Materias a Intensificar (Pendientes 2025)</h2>
@@ -37,7 +34,7 @@
 
             <!-- 3. OBSERVACIONES -->
             <section class="tarjeta-bloque">
-                <h2>📝 Observaciones y Anotaciones Particularidades</h2>
+                <h2>📝 Observaciones</h2>
                 <p id="texto-observaciones" class="texto-bloque">Sin observaciones registradas.</p>
             </section>
 
@@ -66,7 +63,6 @@
                 </div>
             </section>
             
-             <!-- Botón de retorno al final de la trayectoria (Ideal para celulares) -->
             <div style="margin-top: 25px; text-align: center;">
                 <button onclick="window.location.href='index.html'" class="btn-secundario" style="max-width: 200px; padding: 12px; font-weight: bold; border: 1px solid #cbd5e1;">
                     ⬅ Volver al Inicio / Salir

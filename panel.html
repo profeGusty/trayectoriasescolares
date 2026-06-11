@@ -6,7 +6,6 @@
     <title>Panel de Gestión Escolar</title>
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/panel.css">
-    <!-- <script src="https://jsdelivr.net"></script> -->
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 </head>
@@ -69,6 +68,12 @@
                                 <label>Curso Asignado:</label>
                                 <select id="mat-curso" class="select-curso-global"></select>
                             </div>
+                            <div style="margin-top: 20px; border-top: 2px solid #e2e8f0; padding-top: 15px; max-height: 200px; overflow-y: auto;">
+                                <h4 style="color: var(--color-primario); margin-bottom: 10px;">Materias dadas de alta:</h4>
+                                 <div id="lista-materias-globales-borrar" style="display: grid; gap: 8px;">
+                                    <!-- Se carga dinámicamente con JS -->
+                                 </div>
+                            </div>                            
                             <button type="submit" class="btn-principal">Guardar Materia</button>
                             <button type="button" id="btn-cerrar-modal" class="btn-secundario" style="margin-top: 5px;">Cancelar</button>
                         </form>
@@ -78,9 +83,13 @@
         <!-- BUSCADOR DE ESTUDIANTES -->
         <section class="tarjeta-panel">
             <h2>🔍 Buscador de Estudiantes</h2>
-            <div class="grupo-busqueda">
-                <input type="text" id="input-busqueda" placeholder="Buscar por DNI, Apellido, Nombre o Curso...">
-                <button id="btn-buscar" class="btn-principal">Buscar</button>
+            <div class="grupo-busqueda" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <input type="text" id="input-busqueda" placeholder="Buscar por DNI, Apellido o Nombre..." style="flex: 2; min-width: 200px;">
+                <!-- NUEVO: Selector rápido por curso -->
+                <select id="select-filtro-curso" class="select-curso-global" style="flex: 1; min-width: 150px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                  <option value="">-- Filtrar por Curso --</option>
+                 </select>
+                 <button id="btn-buscar" class="btn-principal" style="width: auto; padding: 10px 25px;">Buscar</button>
             </div>
             
             <div class="tabla-responsiva margin-top">
