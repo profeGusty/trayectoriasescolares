@@ -14,7 +14,13 @@
     border-radius: 12px;
     display: flex;
     justify-content: space-between;
+    gap: 1rem;
     align-items: center;
+    width: 100%;
+}
+
+.barra-superior div {
+    width: 100%;
 }
 
 .barra-superior h1 { font-size: 1.4rem; }
@@ -23,9 +29,10 @@
 .btn-salir {
     background: #334155;
     color: white;
-    width: auto;
+    /* width: auto; */
     padding: 8px 14px;
     font-size: 0.85rem;
+    max-width: 200px;
 }
 
 .tarjeta-panel {
@@ -39,12 +46,21 @@
     display: flex;
     gap: 15px;
     flex-wrap: wrap;
+
 }
 
 .barra-acciones button {
     width: auto;
     padding: 12px 20px;
 }
+
+.barra-acciones, 
+section.tarjeta-panel.barra-acciones {
+    /* flex-direction: column;  */
+    /* padding: 15px !important; */
+    width: 100%;
+}
+
 
 .tarjeta-formulario {
     background: white;
@@ -62,14 +78,30 @@
 }
 
 .span-2 {
-    grid-column: span 1;
+    grid-column: span 2;
 }
 
-@media (min-width: 600px) {
-    .span-2 { grid-column: span 2; }
+@media (max-width: 600px) {
+    .grid-formulario {
+        grid-template-columns: 1fr; 
+    }
+
+    .span-2 { 
+       grid-column: span 1;
+     }
+
+     .barra-superior{
+        flex-direction: column; 
+    }
+     .barra-acciones,section.tarjeta-panel.barra-acciones {
+         flex-direction: column; 
+}
+
+
 }
 
 .campo-grupo input, .campo-grupo select {
+    /* width: 100%; */
     padding: 10px;
     border: 2px solid #cbd5e1;
     border-radius: 6px;
@@ -291,6 +323,7 @@ td div {
 
 /* --- REGLA PARA PANTALLAS GRANDES (COMPUTADORAS) --- */
 @media (min-width: 768px) {
+
     .grupo-busqueda {
         flex-direction: row; /* En PC vuelven a ponerse uno al lado del otro */
     }
@@ -304,3 +337,6 @@ td div {
         padding: 12px;
     }
 }
+
+
+
