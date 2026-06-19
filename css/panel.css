@@ -1,3 +1,10 @@
+ *{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 .contenedor-panel {
     width: 100%;
     max-width: 1100px;
@@ -46,7 +53,6 @@
     display: flex;
     gap: 15px;
     flex-wrap: wrap;
-
 }
 
 .barra-acciones button {
@@ -54,13 +60,10 @@
     padding: 12px 20px;
 }
 
-.barra-acciones, 
+.barra-acciones,
 section.tarjeta-panel.barra-acciones {
-    /* flex-direction: column;  */
-    /* padding: 15px !important; */
     width: 100%;
 }
-
 
 .tarjeta-formulario {
     background: white;
@@ -83,20 +86,141 @@ section.tarjeta-panel.barra-acciones {
 
 @media (max-width: 600px) {
     .grid-formulario {
-        grid-template-columns: 1fr; 
+        grid-template-columns: 1fr;
     }
 
-    .span-2 { 
+    .span-2 {
        grid-column: span 1;
      }
 
      .barra-superior{
-        flex-direction: column; 
+        flex-direction: column;
     }
+
      .barra-acciones,section.tarjeta-panel.barra-acciones {
-         flex-direction: column; 
+         flex-direction: column;
+    }
+
+/* ////////////////NUEVO ////////////////////// */
+    .tabla-gestion-estudiantes thead{
+        display: none;
+    }
+
+    table:not(.tabla-gestion-estudiantes) {
+    min-width: 550px;
+    }
+
+    .tabla-boletin-edicion {
+    min-width: 550px;
+    }
+
+    #resultados-estudiantes,
+    #resultados-estudiantes tbody,
+    #resultados-estudiantes tr,
+    #resultados-estudiantes td {
+        display: block !important;
+        width: 100% !important;
+        overflow:hidden ;
+    }
+
+    /* Convertimos cada fila de alumno en una tarjeta */
+    #resultados-estudiantes tr:not(.fila-mensaje){
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        padding: 15px !important;
+        margin-bottom: 20px !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    /* Estilo de cada renglón de información del alumno */
+    #resultados-estudiantes td {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        align-items: flex-start;
+        text-align: left !important;
+        padding: 10px 5px !important;
+        border: none !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        font-size: 0.9rem !important;
+        flex-wrap: wrap;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+    #resultados-estudiantes td[data-label="Acciones"] {
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    }
+
+    /* Inyección exclusiva del cartelito con el título */
+    #resultados-estudiantes td::before {
+        content: attr(data-label) !important;
+        font-weight: 700 !important;
+        color: #4a5568 !important;
+        min-width: 90px !important;
+        max-width: 90px !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Celda contenedora de las acciones */
+    #resultados-estudiantes td:last-child {
+        border-bottom: none !important;
+        padding: 15px 0 5px 0 !important;
+    }
+
+    #resultados-estudiantes td:last-child::before {
+        display: none !important; /* Oculta el texto "Acciones" */
+    }
+
+    /* Apilamos verticalmente los botones del buscador sin tocar los del boletín */
+    .botones-buscador-estudiantes {
+        display: flex !important;
+        /* flex-direction: column !important; */
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        gap: 10px !important;
+    }
+
+    /* Ajuste de tamaño exacto para los botones del buscador */
+    .botones-buscador-estudiantes button {
+        /* width: 100%; */
+        /* max-width: 220px; */
+        padding: 12px 10px;
+        font-size: 1.9rem;
+        margin: 0 auto;
+        display: block;
+    }
+
+    /* Evita el formato tarjeta en los mensajes de carga o error del buscador */
+    #resultados-estudiantes td.celda-mensaje {
+        display: block !important;
+        text-align: center !important;
+        padding: 20px 10px !important;
+        border: none !important;
+    }
+
+    #resultados-estudiantes tr:has(td.celda-mensaje) {
+    display: table-row !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
 }
 
+    #resultados-estudiantes tr.fila-mensaje {
+        display: table-row !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    #resultados-estudiantes td.celda-mensaje::before {
+        display: none !important;
+    }
 
 }
 
@@ -270,31 +394,30 @@ section.tarjeta-panel.barra-acciones {
 /* 1. Ajustar el buscador para que en el celular se apilen los campos verticalmente */
 .grupo-busqueda {
     display: flex;
-    flex-direction: column; /* Apila el input, select y botón uno abajo del otro */
+    flex-direction: column; 
     gap: 12px;
     width: 100%;
 }
 
-.grupo-busqueda input, 
-.grupo-busqueda select, 
+.grupo-busqueda input,
+.grupo-busqueda select,
 .grupo-busqueda button {
-    width: 100% !important; /* Fuerza a que ocupen todo el ancho del celular */
-    box-sizing: border-box;
+    width: 100% ;
 }
 
 /* 2. Forzar que la tabla se pueda desplazar con el dedo de forma lateral sin desbordar el contenedor */
 .tabla-responsiva {
     width: 100%;
-    overflow-x: auto; /* Activa el desplazamiento horizontal */
-    -webkit-overflow-scrolling: touch; /* Suaviza el scroll en iPhones */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; 
     margin-top: 15px;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
+    /* overflow: hidden ; */
 }
 
 table {
     width: 100%;
-    min-width: 550px; /* Ancho mínimo para que las columnas tengan espacio y no se compriman las letras */
     border-collapse: collapse;
 }
 
@@ -305,7 +428,6 @@ th, td {
     vertical-align: middle;
 }
 
-/* 3. Acomodar los botones de acción para que entren cómodos */
 td div {
     display: flex;
     flex-direction: row; /* Mantiene los botones lado a lado */
@@ -316,8 +438,8 @@ td div {
 
 .btn-tabla {
     padding: 8px 12px !important;
-    font-size: 0.8rem !important;
-    width: auto !important;
+    font-size: .8rem !important;
+    /* width: auto !important; */
     white-space: nowrap; /* Evita que el texto del botón se parta en dos renglones */
 }
 
@@ -327,11 +449,11 @@ td div {
     .grupo-busqueda {
         flex-direction: row; /* En PC vuelven a ponerse uno al lado del otro */
     }
-    
+
     .grupo-busqueda input { flex: 2; }
     .grupo-busqueda select { flex: 1; }
     .grupo-busqueda button { width: auto !important; }
-    
+
     th, td {
         font-size: 0.95rem; /* En PC la letra vuelve a su tamaño normal */
         padding: 12px;

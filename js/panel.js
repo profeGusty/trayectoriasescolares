@@ -146,11 +146,11 @@ async function ejecutarBusqueda() {
 
     // Si ambos campos de control están vacíos, no hacemos nada
     if (!termino && !cursoSeleccionado) {
-        tabla.innerHTML = `<tr><td colspan="4" class="text-center">Por favor, escribí un dato o seleccioná un curso para buscar.</td></tr>`;
-        return;
+    tabla.innerHTML = `<tr class="fila-mensaje"><td colspan="4" class="text-center celda-mensaje">Buscando en los registros...</td></tr>`; 
+    return;
     }
 
-    tabla.innerHTML = `<tr><td colspan="4" class="text-center">Buscando en los registros...</td></tr>`;
+    tabla.innerHTML = `<tr><td colspan="4" class="text-center celda-mensaje">Buscando en los registros...</td></tr>`;
     
     try {
         let consulta = window.supabaseCliente.from('estudiantes').select('*');
@@ -175,30 +175,31 @@ async function ejecutarBusqueda() {
         if (error) throw error;
 
         if (!data || data.length === 0) {
-            tabla.innerHTML = `<tr><td colspan="4" class="text-center">No se encontraron estudiantes para esa búsqueda.</td></tr>`;
+           tabla.innerHTML = `<tr class="fila-mensaje"><td colspan="4" class="text-center celda-mensaje">No se encontraron estudiantes para esa búsqueda.</td></tr>`;
             return;
         }
 
         // Renderizar el listado con los botones de gestión y eliminación de alumnos
         tabla.innerHTML = data.map(est => `
             <tr>
-                <td>${est.dni}</td>
-                <td><b>${est.apellido.toUpperCase()}, ${est.nombre}</b></td>
-                <td>${est.curso_actual}</td>
-                <td>
-                    <div style="display: flex; gap: 5px; justify-content: center;">
-                        <button class="btn-principal btn-tabla btn-azul" onclick="seleccionarEstudiante('${est.id}', '${est.nombre} ${est.apellido}', '${est.dni}', '${est.curso_actual}', '${est.observaciones || ''}')">Gestionar ⚙️</button>
-                        <button class="btn-secundario btn-tabla" style="color: var(--color-error); border: 1px solid #fca5a5; background: #fff5f5; padding: 4px 8px; width: auto;" onclick="window.eliminarEstudianteDeRaiz('${est.id}', '${est.apellido.toUpperCase()}')">Borrar 🗑️</button>
-                    </div>
+                <td data-label="DNI">${est.dni}</td>
+                <td data-label="Nombre y Apellido"><b>${est.apellido.toUpperCase()}, ${est.nombre}</b></td>
+                <td data-label="Curso">${est.curso_actual}</td>
+                <td data-label="Acciones">
+                     <div class="botones-buscador-estudiantes">
+                         <button class="btn-principal btn-tabla btn-azul" onclick="seleccionarEstudiante('${est.id}', '${est.nombre} ${est.apellido}', '${est.dni}', '${est.curso_actual}', '${est.observaciones || ''}')">Gestionar ⚙️</button>
+                         <button class="btn-secundario btn-tabla" style="color: var(--color-error); border: 1px solid #fca5a5; background: #fff5f5; padding: 4px 8px;" onclick="window.eliminarEstudianteDeRaiz('${est.id}', '${est.apellido.toUpperCase()}')">Borrar 🗑️</button>
+                   </div>
                 </td>
             </tr>
         `).join('');
 
     } catch (err) {
         console.error("Error en la búsqueda:", err.message);
-        tabla.innerHTML = `<tr><td colspan="4" class="text-center" style="color: var(--color-error);">Error al conectar con los registros de Supabase.</td></tr>`;
+        tabla.innerHTML = `<tr class="fila-mensaje"><td colspan="4" class="text-center celda-mensaje" style="color: var(--color-error);">Error al conectar con los registros de Supabase.</td></tr>`;
     }
 }
+
 
 
 // NUEVA FUNCIÓN GLOBAL PARA BORRAR ALUMNOS DESDE LA TABLA
