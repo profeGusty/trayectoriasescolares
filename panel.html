@@ -24,7 +24,76 @@
         <section class="tarjeta-panel barra-acciones">
             <button id="btn-toggle-nuevo-alumno" class="btn-principal btn-verde">➕ Registrar Nuevo Estudiante</button>
             <button id="btn-abrir-materia-modal" class="btn-principal btn-azul">📚 Agregar Nueva Materia</button>
+            <button id="btn-abrir-carga-notas" class="btn-principal btn-verde" onclick="mostrarPanelCargaNotas()">
+                    Cargar Notas por Materia 📝
+            </button>
         </section>
+
+        <!-- PANEL DE CARGA MASIVA DE NOTAS (Oculto por defecto) -->
+        <section id="seccion-carga-notas" class="tarjeta-panel" style="display: none; margin-top: 20px;">
+    <div class="cabecera-modulo">
+        <h3>Carga Masiva de Calificaciones</h3>
+        <button class="btn-secundario btn-cerrar" onclick="cerrarPanelCargaNotas()">Volver al Panel ✕</button>
+    </div>
+
+    <!-- Filtros de Selección en Cascada -->
+    <div class="grid-filtros-notas">
+        <div class="campo-grupo">
+            <label for="notas-select-curso">1. Seleccionar Curso:</label>
+            <select id="notas-select-curso" onchange="cargarMateriasPorCurso()">
+                <option value="">-- Elegir Curso --</option>
+                <!-- Se rellena dinámicamente o ponés tus opciones fijas (ej: 7mo 2da) -->
+                <option value="7mo 2da">7mo 2da</option> 
+            </select>
+        </div>
+
+        <div class="campo-grupo">
+            <label for="notas-select-materia">2. Seleccionar Materia:</label>
+            <select id="notas-select-materia" disabled onchange="cargarPlanillaEstudiantes()">
+                <option value="">-- Seleccioná primero el curso --</option>
+            </select>
+        </div>
+
+        <div class="campo-grupo">
+            <label for="notas-select-periodo">3. Periodo a Calificar:</label>
+            <select id="notas-select-periodo" onchange="actualizarColumnaPeriodo()">
+                <option value="primer_informe">1er Informe (Cualitativo)</option>
+                <option value="primer_cuatrimestre">1er Cuatrimestre (Numérico 1-10)</option>
+                <option value="segundo_informe">2do Informe (Cualitativo)</option>
+                <option value="segundo_cuatrimestre">2do Cuatrimestre (Numérico 1-10)</option>
+                <!-- 🌟 Corregido: Ahora coincide milimétricamente con tu tabla de Supabase -->
+                <option value="nota_anual">Nota Anual (Numérico 1-10)</option>
+                <option value="nota_final">Nota Final (Numérico 1-10)</option>
+             </select>
+        </div>
+
+    <!-- Contenedor de la Planilla de Estudiantes -->
+    <div class="tabla-responsiva" style="margin-top: 20px;">
+        <table class="tabla-notas-global">
+            <thead>
+                <tr>
+                    <th style="width: 40%;">Estudiante</th>
+                    <th style="width: 60%; text-align: center;">Calificación para el Periodo Seleccionado</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-planilla-notas">
+                <tr>
+                    <td colspan="2" class="text-center" style="padding: 20px; color: #718096;">
+                        Seleccioná un curso y una materia para desplegar la planilla de alumnos.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Botón de Guardado General único abajo de todo -->
+    <div class="contenedor-guardado-general" style="margin-top: 20px; display: none;" id="bloque-guardar-notas">
+        <button class="btn-principal btn-azul" style="width: 100%; padding: 14px;" onclick="guardarNotasGenerales()">
+            Guardar Todas las Notas Cargadas 💾
+        </button>
+    </div>
+        </section>
+
 
         <!-- FORMULARIO NUEVO ESTUDIANTE (OCULTO POR DEFECTO) -->
         <div id="seccion-nuevo-alumno" class="oculto tarjeta-formulario">

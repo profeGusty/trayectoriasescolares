@@ -702,3 +702,247 @@ window.eliminarMateriaEscuela = async function(materiaId) {
         if (alumnoSeleccionadoId) cargarBoletinEdicion(); // Recargar el boletín si hay ficha abierta
     } catch (err) {}
 };
+
+/* ==========================================================================
+   MÓDULO DE CARGA MASIVA DE CALIFICACIONES (BOLETINES)
+   ========================================================================== */
+
+// 1. Funciones básicas de apertura y cierre del panel visual
+function mostrarPanelCargaNotas() {
+    document.getElementById("seccion-carga-notas").style.display = "block";
+    // Hacemos scroll suave hasta la sección para comodidad visual
+    document.getElementById("seccion-carga-notas").scrollIntoView({ behavior: 'smooth' });
+}
+
+function cerrarPanelCargaNotas() {
+    document.getElementById("seccion-carga-notas").style.display = "none";
+    // Resetear filtros
+    document.getElementById("notas-select-curso").value = "";
+    const selectMateria = document.getElementById("notas-select-materia");
+    selectMateria.innerHTML = '<option value="">-- Seleccioná primero el curso --</option>';
+    selectMateria.disabled = true;
+    document.getElementById("tbody-planilla-notas").innerHTML = `<tr><td colspan="2" class="text-center" style="padding: 20px; color: #718096;">Seleccioná un curso y una materia para desplegar la planilla de alumnos.</td></tr>`;
+    document.getElementById("bloque-guardar-notas").style.display = "none";
+}
+
+// 2. Cargar materias dinámicamente según el curso seleccionado
+async function cargarMateriasPorCurso() {
+    const curso = document.getElementById("notas-select-curso").value;
+    const selectMateria = document.getElementById("notas-select-materia");
+    const tbody = document.getElementById("tbody-planilla-notas");
+    
+    // Limpiamos y deshabilitamos campos inferiores si no hay curso seleccionado
+    if (!curso) {
+        selectMateria.innerHTML = '<option value="">-- Seleccioná primero el curso --</option>';
+        selectMateria.disabled = true;
+        tbody.innerHTML = `<tr><td colspan="2" class="text-center" style="padding: 20px; color: #718096;">Seleccioná un curso y una materia para desplegar la planilla de alumnos.</td></tr>`;
+        document.getElementById("bloque-guardar-notas").style.display = "none";
+        return;
+    }
+
+    selectMateria.innerHTML = '<option value="">Cargando materias...</option>';
+    
+    try {
+        // Consultamos a la tabla 'materias' filtrando por la columna 'curso'
+        const { data: materias, error } = await window.supabaseCliente
+            .from('materias')
+            .select('id, nombre_materia')
+            .eq('curso', curso)
+            .order('nombre_materia');
+
+        if (error) throw error;
+
+        if (!materias || materias.length === 0) {
+            selectMateria.innerHTML = '<option value="">No hay materias registradas en este curso</option>';
+            selectMateria.disabled = true;
+            return;
+        }
+
+        // Rellenamos el selector de materias
+        let opciones = '<option value="">-- Elegir Materia --</option>';
+        materias.forEach(mat => {
+            opciones += `<option value="${mat.id}">${mat.nombre_materia}</option>`;
+        });
+        selectMateria.innerHTML = opciones;
+        selectMateria.disabled = false;
+
+    } catch (err) {
+        console.error("Error al cargar materias:", err.message);
+        alert("Hubo un problema al consultar las materias de este curso.");
+    }
+}
+
+// 3. Generar la planilla general de estudiantes y precargar notas existentes
+async function cargarPlanillaEstudiantes() {
+    const curso = document.getElementById("notas-select-curso").value;
+    const materiaId = document.getElementById("notas-select-materia").value;
+    const periodo = document.getElementById("notas-select-periodo").value;
+    const tbody = document.getElementById("tbody-planilla-notas");
+    const btnGuardar = document.getElementById("bloque-guardar-notas");
+
+    if (!curso || !materiaId) {
+        tbody.innerHTML = `<tr><td colspan="2" class="text-center" style="padding: 20px; color: #718096;">Seleccioná un curso y una materia para desplegar la planilla de alumnos.</td></tr>`;
+        btnGuardar.style.display = "none";
+        return;
+    }
+
+    tbody.innerHTML = '<tr><td colspan="2" class="text-center" style="padding: 20px;">Estructurando planilla de calificaciones...</td></tr>';
+
+    try {
+        // Paso A: Traer todos los alumnos de ese curso ordenados alfabéticamente
+        const { data: alumnos, error: errorAlumnos } = await window.supabaseCliente
+            .from('estudiantes')
+            .select('id, nombre, apellido')
+            .eq('curso_actual', curso)
+            .order('apellido');
+
+        if (errorAlumnos) throw errorAlumnos;
+
+        if (!alumnos || alumnos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="2" class="text-center" style="padding: 20px; color: #ef4444;">No hay estudiantes cargados en este curso.</td></tr>';
+            btnGuardar.style.display = "none";
+            return;
+        }
+
+        // Paso B: Traer todos los boletines existentes de esta materia para pre-cargar las notas guardadas
+        const { data: boletinesExistentes, error: errorBoletines } = await window.supabaseCliente
+            .from('boletines')
+            .select('estudiante_id, primer_informe, primer_cuatrimestre, segundo_informe, segundo_cuatrimestre, nota_anual, nota_final')
+            .eq('materia_id', parseInt(materiaId));
+
+        if (errorBoletines) throw errorBoletines;
+
+        // Mapeamos los boletines en un objeto llave-valor rápido indexado por 'estudiante_id'
+        const notasMapeadas = {};
+        if (boletinesExistentes) {
+            boletinesExistentes.forEach(b => {
+                notasMapeadas[b.estudiante_id] = b;
+            });
+        }
+
+        // Paso C: Renderizar las filas de la tabla
+        let HTMLFilas = "";
+        
+        alumnos.forEach(alu => {
+            // Evaluamos si el alumno ya cuenta con fila de boletín y nota previa en este periodo
+            const registroBoletin = notasMapeadas[alu.id] || null;
+            const notaActual = registroBoletin ? registroBoletin[periodo] : "";
+
+            // Generamos el menú selector adecuado basado en el tipo de periodo
+            const campoCalificacion = generarSelectorNota(alu.id, periodo, notaActual);
+
+            HTMLFilas += `
+                <tr class="fila-nota-estudiante" data-estudiante-id="${alu.id}">
+                    <td style="font-weight: 600; padding: 12px; vertical-align: middle;">
+                        ${alu.apellido.toUpperCase()}, ${alu.nombre}
+                    </td>
+                    <td style="text-align: center; padding: 12px; vertical-align: middle;">
+                        ${campoCalificacion}
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = HTMLFilas;
+        btnGuardar.style.display = "block"; // Desplegamos el botón de guardado general único
+
+    } catch (err) {
+        console.error("Error al estructurar la planilla:", err.message);
+        tbody.innerHTML = '<tr><td colspan="2" class="text-center" style="padding: 20px; color: #ef4444;">Error de comunicación al compilar la planilla.</td></tr>';
+    }
+}
+
+// 4. Alternar de forma dinámica las reglas del control de notas (Cualitativo vs Numérico)
+function generarSelectorNota(estudianteId, periodo, valorActual) {
+    // Si el periodo incluye la palabra 'informe', creamos un select cualitativo (TEA, TEP, TED)
+    if (periodo.includes("informe")) {
+        const opciones = ["", "TEA", "TEP", "TED"];
+        let selector = `<select class="select-nota-alumno form-control" data-estudiante="${estudianteId}">`;
+        opciones.forEach(op => {
+            const selected = (String(valorActual) === op) ? "selected" : "";
+            selector += `<option value="${op}" ${selected}>${op || '-- Sin Calificar --'}</option>`;
+        });
+        selector += `</select>`;
+        return selector;
+    } else {
+        // Para cuatrimestres, anual y final, creamos select numérico del 1 al 10 enteros
+        let selector = `<select class="select-nota-alumno form-control" data-estudiante="${estudianteId}">`;
+        selector += `<option value="">-- Sin Calificar --</option>`;
+        for (let i = 1; i <= 10; i++) {
+            const selected = (parseInt(valorActual) === i) ? "selected" : "";
+            selector += `<option value="${i}" ${selected}>${i}</option>`;
+        }
+        selector += `</select>`;
+        return selector;
+    }
+}
+
+// 5. Listener de cambio para refrescar la planilla si el usuario cambia el periodo
+function actualizarColumnaPeriodo() {
+    const materiaId = document.getElementById("notas-select-materia").value;
+    if (materiaId) {
+        // Re-renderiza los inputs para cambiar entre letras y números sin perder el contexto del alumno
+        cargarPlanillaEstudiantes();
+    }
+}
+
+async function guardarNotasGenerales() {
+    const materiaId = document.getElementById("notas-select-materia").value;
+    const periodo = document.getElementById("notas-select-periodo").value;
+    const selectores = document.querySelectorAll(".select-nota-alumno");
+
+    if (!materiaId || selectores.length === 0) return;
+
+    // Indicador visual de carga en el botón
+    const btnGuardar = document.querySelector("#bloque-guardar-notas button");
+    const textoOriginal = btnGuardar.innerHTML;
+    btnGuardar.innerHTML = "Guardando calificaciones en Supabase... ⏳";
+    btnGuardar.disabled = true;
+
+    const registrosABoletines = [];
+
+    // Recorremos cada selector de la planilla
+    selectores.forEach(select => {
+        // Extraemos el ID del alumno guardado en el atributo 'data-estudiante'
+        const idDelEstudiante = select.getAttribute("data-estudiante");
+        let valorNota = select.value;
+
+        // Validamos el tipo de dato según el periodo académico
+        if (!periodo.includes("informe") && valorNota !== "") {
+            valorNota = parseInt(valorNota);
+        } else if (valorNota === "") {
+            valorNota = null; // Celda vacía va como NULL a Supabase
+        }
+
+        // Armamos el objeto de forma ultra explícita utilizando nombres de variables diferentes
+        const filaBoletin = {
+            estudiante_id: idDelEstudiante, // Nombre exacto de la columna en Supabase
+            materia_id: parseInt(materiaId), // Nombre exacto de la columna en Supabase
+            [periodo]: valorNota // Columna dinámica (ej: primer_cuatrimestre)
+        };
+
+        registrosABoletines.push(filaBoletin);
+    });
+
+    try {
+        // Enviamos el lote completo a Supabase resolviendo conflictos por clave única compuesta
+        const { error } = await window.supabaseCliente
+            .from('boletines')
+            .upsert(registrosABoletines, { onConflict: 'estudiante_id,materia_id' });
+
+        if (error) throw error;
+
+        alert("¡Excelente! Todas las calificaciones se actualizaron y guardaron correctamente. 💾✨");
+        
+        // Refrescamos la planilla para asegurar la consistencia visual
+        await cargarPlanillaEstudiantes();
+
+    } catch (err) {
+        console.error("Error en upsert masivo de boletines:", err.message);
+        alert(`Ocurrió un error al procesar el guardado general: ${err.message}`);
+    } finally {
+        // Devolvemos el botón a su estado original
+        btnGuardar.innerHTML = textoOriginal;
+        btnGuardar.disabled = false;
+    }
+}
