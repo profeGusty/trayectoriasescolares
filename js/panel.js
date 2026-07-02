@@ -45,6 +45,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 });
 
+async function inicializarCursosCalificaciones() {
+    const selectCurso = document.getElementById("notas-select-curso");
+    
+    try {
+        // Agrupamos por la columna 'curso' de la tabla materias para obtener los existentes
+        const { data, error } = await window.supabaseCliente
+            .from('materias')
+            .select('curso');
+
+        if (error) throw error;
+
+        // Filtramos valores duplicados o vacíos en JavaScript
+        const cursosUnicos = [...new Set(data.map(m => m.curso))].filter(Boolean).sort();
+
+        let opciones = '<option value="">-- Elegir Curso --</option>';
+        cursosUnicos.forEach(curso => {
+            opciones += `<option value="${curso}">${curso}</option>`;
+        });
+        
+        selectCurso.innerHTML = opciones;
+
+    } catch (err) {
+        console.error("Error al cargar cursos únicos:", err.message);
+        selectCurso.innerHTML = '<option value="">-- Error al cargar --</option>';
+    }
+}
+
 // Inyección limpia de rangos fijos de la escuela
 function inicializarSelectoresGlobales() {
     // Cursos
@@ -710,8 +737,9 @@ window.eliminarMateriaEscuela = async function(materiaId) {
 // 1. Funciones básicas de apertura y cierre del panel visual
 function mostrarPanelCargaNotas() {
     document.getElementById("seccion-carga-notas").style.display = "block";
-    // Hacemos scroll suave hasta la sección para comodidad visual
     document.getElementById("seccion-carga-notas").scrollIntoView({ behavior: 'smooth' });
+    inicializarCursosCalificaciones();
+
 }
 
 function cerrarPanelCargaNotas() {

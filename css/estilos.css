@@ -115,7 +115,7 @@ header {
 
 /* BOTONES */
 button {
-    width: 100%;
+    /* width: 100%; */
     padding: 12px;
     border: none;
     border-radius: 8px;

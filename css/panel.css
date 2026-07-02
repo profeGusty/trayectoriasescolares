@@ -101,17 +101,16 @@ section.tarjeta-panel.barra-acciones {
          flex-direction: column;
     }
 
-/* ////////////////NUEVO ////////////////////// */
     .tabla-gestion-estudiantes thead{
         display: none;
     }
 
     table:not(.tabla-gestion-estudiantes) {
-    min-width: 550px;
+    /* min-width: 550px; */
     }
 
     .tabla-boletin-edicion {
-    min-width: 550px;
+    /* min-width: 550px; */
     }
 
     #resultados-estudiantes,
@@ -209,7 +208,7 @@ section.tarjeta-panel.barra-acciones {
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
-}
+    }
 
     #resultados-estudiantes tr.fila-mensaje {
         display: table-row !important;
@@ -220,6 +219,46 @@ section.tarjeta-panel.barra-acciones {
 
     #resultados-estudiantes td.celda-mensaje::before {
         display: none !important;
+    }
+
+    .grid-filtros-notas {
+        grid-template-columns: 1fr; 
+        display: flex;
+        flex-direction: column; /* Apilado nativo en móviles */
+        gap: 15px;
+        background: #f8fafc;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        margin-top: 15px;
+        width: 100%;
+    }
+
+    .grid-filtros-notas .campo-grupo {
+    width: 100% !important;
+    display: flex;
+    flex-direction: column;
+    }
+
+    .grid-filtros-notas select {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 10px;
+        font-size: 0.95rem;
+    }
+
+    .cabecera-modulo {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .btn-cerrar{
+        width:100%;
+    }
+    .select-nota-alumno {
+        max-width: 100%; /* El selector ocupa toda la fila del celular */
     }
 
 }
@@ -272,7 +311,7 @@ section.tarjeta-panel.barra-acciones {
 
 .pestanas-navegacion {
     display: flex;
-    gap: 5px;
+    /* gap: 5px; */
     border-bottom: 2px solid #cbd5e1;
     margin-bottom: 15px;
     overflow-x: auto;
@@ -282,7 +321,7 @@ section.tarjeta-panel.barra-acciones {
     background: none;
     color: #64748b;
     border-radius: 8px 8px 0 0;
-    padding: 10px 15px;
+    /* padding: 10px 15px; */
     width: auto;
     white-space: nowrap;
 }
@@ -423,7 +462,7 @@ table {
 
 th, td {
     padding: 10px 8px;
-    font-size: 0.85rem; /* Achicamos un poco la letra en celulares para optimizar espacio */
+    font-size: 0.85rem; 
     text-align: center;
     vertical-align: middle;
 }
@@ -455,8 +494,13 @@ td div {
     .grupo-busqueda button { width: auto !important; }
 
     th, td {
-        font-size: 0.95rem; /* En PC la letra vuelve a su tamaño normal */
+        font-size: 0.95rem; 
         padding: 12px;
+    }
+
+    .grid-filtros-notas {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
     }
 }
 
@@ -464,7 +508,8 @@ td div {
 /* --- DISEÑO DEL MÓDULO DE NOTAS POR MATERIAS --- */
 .grid-filtros-notas {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    /* grid-template-columns: repeat(3, 1fr); */
     gap: 15px;
     background: #f8fafc;
     padding: 15px;
@@ -483,11 +528,11 @@ td div {
 }
 
 .btn-cerrar {
-    background: #ef4444 !important;
-    color: white !important;
-    border: none !important;
-    padding: 6px 12px !important;
-    font-size: 0.85rem !important;
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: .6rem;
+    font-size: 0.85rem ;
 }
 
 /* Selectores de nota dentro de la grilla */
@@ -501,18 +546,4 @@ td div {
     font-weight: 600;
 }
 
-/* --- MEDIA QUERY RESPONSIVA (Menos de 600px) --- */
-@media (max-width: 600px) {
-    .grid-filtros-notas {
-        grid-template-columns: 1fr; /* Pone los 3 selectores uno abajo del otro en celular */
-    }
-    .cabecera-modulo {
-        flex-direction: column;
-        gap: 10px;
-        text-align: center;
-    }
-    .select-nota-alumno {
-        max-width: 100%; /* El selector ocupa toda la fila del celular */
-    }
-}
 
