@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Gestión Escolar</title>
+    <link rel="icon" type="image/webp" href="img/LOGO2.webp">
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/panel.css">
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -13,6 +14,7 @@
 
     <div class="contenedor-panel">
         <header class="barra-superior">
+            <img src="img/LOGO2.webp" alt="Logo EEST N°5" class="logo-barra-superior">
             <div>
                 <h1>💼 Panel Escolar</h1>
                 <p id="info-usuario">Cargando usuario...</p>
@@ -149,7 +151,7 @@
                 </div>
 
         <!-- BUSCADOR DE ESTUDIANTES -->
-        <section class="tarjeta-panel">
+        <section class="tarjeta-panel" id="seccion-buscador-estudiantes">
             <h2>🔍 Buscador de Estudiantes</h2>
             <div class="grupo-busqueda" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
                 <input type="text" id="input-busqueda" placeholder="Buscar por DNI, Apellido o Nombre..." style="flex: 2; min-width: 200px;">
@@ -158,6 +160,7 @@
                   <option value="">-- Filtrar por Curso --</option>
                  </select>
                  <button id="btn-buscar" class="btn-principal" style="width: auto; padding: 10px 25px;">Buscar</button>
+                 <button id="btn-limpiar-busqueda" type="button" class="btn-secundario" style="width: auto; padding: 10px 25px;">✕ Limpiar</button>
             </div>
             
             <div class="tabla-responsiva ">

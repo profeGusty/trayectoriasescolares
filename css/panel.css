@@ -30,6 +30,14 @@
     width: 100%;
 }
 
+.logo-barra-superior {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    flex-shrink: 0; /* que no se achique si el header queda apretado en mobile */
+    border-radius: 6px;
+}
+
 .barra-superior h1 { font-size: 1.4rem; }
 .barra-superior p { font-size: 0.85rem; color: #94a3b8; }
 
@@ -179,6 +187,14 @@ section.tarjeta-panel.barra-acciones {
 
     .tabla-gestion-estudiantes thead{
         display: none;
+    }
+
+    table:not(.tabla-gestion-estudiantes) {
+    /* min-width: 550px; */
+    }
+
+    .tabla-boletin-edicion {
+    /* min-width: 550px; */
     }
 
     #resultados-estudiantes,

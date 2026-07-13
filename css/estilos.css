@@ -53,6 +53,13 @@ header {
     margin-bottom: 8px !important;
 }
 
+.logo-escuela {
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
 .encabezado-inicio p {
     color: #475569 !important; /* Gris oscuro legible */
     font-weight: 500;

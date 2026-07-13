@@ -45,6 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 3. BUSCADOR
     document.getElementById("btn-buscar").addEventListener("click", ejecutarBusqueda);
     document.getElementById("input-busqueda").addEventListener("keypress", (e) => { if (e.key === "Enter") ejecutarBusqueda(); });
+    document.getElementById("btn-limpiar-busqueda").addEventListener("click", limpiarBusquedaEstudiantes);
 
     // 4. MODAL MATERIAS Y MENÚ DESPLEGABLE NUEVO ALUMNO
     configurarComponentesInterfaz();
@@ -189,6 +190,19 @@ function sanitizarTerminoBusqueda(texto) {
         .replace(/[^\p{L}\p{N}\s-]/gu, '') // solo letras, números, espacios y guiones
         .trim()
         .slice(0, 60); // límite razonable de longitud
+}
+
+// Vuelve el buscador de estudiantes al estado inicial (como al entrar al panel):
+// vacía el texto y el filtro por curso, borra los resultados de la tabla, y oculta
+// el panel de edición del alumno que estuviera seleccionado (boletín/intensificar/
+// recursar/observaciones), por si había uno abierto.
+function limpiarBusquedaEstudiantes() {
+    document.getElementById("input-busqueda").value = "";
+    document.getElementById("select-filtro-curso").value = "";
+    document.getElementById("resultados-estudiantes").innerHTML =
+        `<tr><td colspan="4" class="text-center">Ingresá un término para buscar.</td></tr>`;
+
+    ocultarPanelEdicionAlumno();
 }
 
 async function ejecutarBusqueda() {
@@ -830,6 +844,10 @@ function mostrarPanelCargaNotas() {
     document.getElementById("seccion-carga-notas").scrollIntoView({ behavior: 'smooth' });
     inicializarCursosCalificaciones();
 
+    // Ocultamos el buscador de estudiantes mientras se cargan notas: no hace falta
+    // verlo en ese momento, y así se gana espacio en pantalla.
+    const seccionBuscador = document.getElementById("seccion-buscador-estudiantes");
+    if (seccionBuscador) seccionBuscador.style.display = "none";
 }
 
 function cerrarPanelCargaNotas() {
@@ -841,6 +859,10 @@ function cerrarPanelCargaNotas() {
     selectMateria.disabled = true;
     document.getElementById("tbody-planilla-notas").innerHTML = `<tr><td colspan="2" class="text-center" style="padding: 20px; color: #718096;">Seleccioná un curso y una materia para desplegar la planilla de alumnos.</td></tr>`;
     document.getElementById("bloque-guardar-notas").style.display = "none";
+
+    // Al cerrar, volvemos a mostrar el buscador de estudiantes.
+    const seccionBuscador = document.getElementById("seccion-buscador-estudiantes");
+    if (seccionBuscador) seccionBuscador.style.display = "block";
 }
 
 // 2. Cargar materias dinámicamente según el curso seleccionado
