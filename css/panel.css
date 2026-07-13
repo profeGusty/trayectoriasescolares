@@ -117,139 +117,148 @@ section.tarjeta-panel.barra-acciones {
     #resultados-estudiantes tbody,
     #resultados-estudiantes tr,
     #resultados-estudiantes td {
-        display: block !important;
-        width: 100% !important;
+        display: block;
+        width: 100%;
         overflow:hidden ;
     }
 
     /* Convertimos cada fila de alumno en una tarjeta */
     #resultados-estudiantes tr:not(.fila-mensaje){
-        background: #ffffff !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 8px !important;
-        padding: 15px !important;
-        margin-bottom: 20px !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px ;
+        padding: 15px;
+        margin-bottom: 20px ;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
 
     /* Estilo de cada renglón de información del alumno */
     #resultados-estudiantes td {
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: flex-start !important;
+        display: flex;
+        flex-direction: row ;
+        justify-content: flex-start;
         align-items: flex-start;
-        text-align: left !important;
-        padding: 10px 5px !important;
-        border: none !important;
-        border-bottom: 1px solid #f1f5f9 !important;
-        font-size: 0.9rem !important;
+        text-align: left;
+        padding: 10px 5px;
+        border: none;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
         flex-wrap: wrap;
         overflow-wrap: break-word;
         word-break: break-word;
     }
 
     #resultados-estudiantes td[data-label="Acciones"] {
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
+    flex-direction: column ;
+    align-items: center;
+    justify-content: center ;
     }
 
     /* Inyección exclusiva del cartelito con el título */
     #resultados-estudiantes td::before {
-        content: attr(data-label) !important;
-        font-weight: 700 !important;
-        color: #4a5568 !important;
-        min-width: 90px !important;
-        max-width: 90px !important;
-        flex-shrink: 0 !important;
+        content: attr(data-label);
+        font-weight: 700 ;
+        color: #4a5568 ;
+        min-width: 90px ;
+        max-width: 90px ;
+        flex-shrink: 0 ;
     }
 
     /* Celda contenedora de las acciones */
     #resultados-estudiantes td:last-child {
-        border-bottom: none !important;
-        padding: 15px 0 5px 0 !important;
+        border-bottom: none;
+        padding: 15px 0 5px 0;
     }
 
     #resultados-estudiantes td:last-child::before {
-        display: none !important; /* Oculta el texto "Acciones" */
+        display: none; /* Oculta el texto "Acciones" */
     }
 
     /* Apilamos verticalmente los botones del buscador sin tocar los del boletín */
     .botones-buscador-estudiantes {
-        display: flex !important;
-        /* flex-direction: column !important; */
-        align-items: center !important;
-        justify-content: center !important;
-        width: 100% !important;
-        gap: 10px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center ;
+        width: 100% ;
+        gap: 10px ;
     }
 
     /* Ajuste de tamaño exacto para los botones del buscador */
     .botones-buscador-estudiantes button {
-        /* width: 100%; */
-        /* max-width: 220px; */
-        padding: 12px 10px;
-        font-size: 1.9rem;
+        padding: 5px 10px;
+        font-size: .9rem;
         margin: 0 auto;
         display: block;
     }
 
     /* Evita el formato tarjeta en los mensajes de carga o error del buscador */
     #resultados-estudiantes td.celda-mensaje {
-        display: block !important;
-        text-align: center !important;
-        padding: 20px 10px !important;
-        border: none !important;
+        display: block;
+        text-align: center;
+        padding: 20px 10px;
+        border: none;
     }
 
     #resultados-estudiantes tr:has(td.celda-mensaje) {
-    display: table-row !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
+    display: table-row;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
     }
 
     #resultados-estudiantes tr.fila-mensaje {
-        display: table-row !important;
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
+        display: table-row;
+        background: transparent;
+        border: none;
+        box-shadow: none;
     }
 
     #resultados-estudiantes td.celda-mensaje::before {
-        display: none !important;
+        display: none;
     }
 
-    .grid-filtros-notas {
-        grid-template-columns: 1fr; 
-        display: flex;
-        flex-direction: column; /* Apilado nativo en móviles */
+    .grid-filtros-notas{
+        /* display: flex;
+        flex-direction: column;  */
+        grid-template-columns:1fr;
         gap: 15px;
         background: #f8fafc;
-        padding: 12px;
+        padding: 15px;
         border-radius: 8px;
         border: 1px solid #e2e8f0;
-        margin-top: 15px;
+        margin-top: 10px;
         width: 100%;
     }
 
     .grid-filtros-notas .campo-grupo {
-    width: 100% !important;
+    width: 100%;
     display: flex;
     flex-direction: column;
     }
 
     .grid-filtros-notas select {
-        width: 100% !important;
-        max-width: 100% !important;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
         padding: 10px;
         font-size: 0.95rem;
     }
 
+    .contenedor-guardado-general{
+    justify-content:center;
+    }
+    .contenedor-guardado-general button{
+    max-width:100%;
+    }
+
+    /* .tabla-notas-global ya no necesita un min-width propio para mobile:
+       usa table-layout:fixed + columnas en % (ver regla base más abajo en el archivo),
+       así que siempre entra en el ancho disponible sin generar scroll horizontal. */
+
     .cabecera-modulo {
         display: flex;
-        flex-direction: column;
+        flex-direction:column;
         gap: 10px;
         text-align: center;
     }
@@ -257,18 +266,21 @@ section.tarjeta-panel.barra-acciones {
     .btn-cerrar{
         width:100%;
     }
-    .select-nota-alumno {
-        max-width: 100%; /* El selector ocupa toda la fila del celular */
-    }
+    /* .select-nota-alumno ya ocupa el 100% de su columna por defecto (ver regla base),
+       no hace falta un override específico para mobile */
 
 }
 
-.campo-grupo input, .campo-grupo select {
-    /* width: 100%; */
+.campo-grupo input,
+ .campo-grupo select {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     padding: 10px;
     border: 2px solid #cbd5e1;
     border-radius: 6px;
     font-size: 0.95rem;
+    box-sizing: border-box;
 }
 
 /* OPTIMIZACIÓN DE TABLAS DESCOMPRIMIDAS */
@@ -297,9 +309,16 @@ section.tarjeta-panel.barra-acciones {
     padding: 10px;
     border: 2px solid #cbd5e1;
     border-radius: 8px;
+    gap: 12px;
 }
 
-.grupo-busqueda button { width: auto; }
+.grupo-busqueda input,
+.grupo-busqueda select,
+.grupo-busqueda button {
+    width: 100% ;
+}
+
+/* .grupo-busqueda button { width: auto; } */
 
 .alerta-alumno-seleccionado {
     background: #eff6ff;
@@ -308,6 +327,8 @@ section.tarjeta-panel.barra-acciones {
     border-radius: 0 12px 12px 0;
     margin-bottom: 15px;
 }
+
+
 
 .pestanas-navegacion {
     display: flex;
@@ -429,30 +450,34 @@ section.tarjeta-panel.barra-acciones {
     background-color: #f0fdf4;
 }
 
-
-/* 1. Ajustar el buscador para que en el celular se apilen los campos verticalmente */
-.grupo-busqueda {
-    display: flex;
-    flex-direction: column; 
-    gap: 12px;
-    width: 100%;
-}
-
-.grupo-busqueda input,
-.grupo-busqueda select,
-.grupo-busqueda button {
-    width: 100% ;
-}
-
-/* 2. Forzar que la tabla se pueda desplazar con el dedo de forma lateral sin desbordar el contenedor */
-.tabla-responsiva {
+.tabla-responsiva{
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch; 
-    margin-top: 15px;
+    margin-top: 20px;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    /* overflow: hidden ; */
+    border-radius: 10px;
+}
+
+.tabla-notas-global{
+    width: 100%;
+    table-layout: fixed; /* Antes esta regla tenía min-width:420px sin estar dentro de
+                             ningún media query, así que se aplicaba SIEMPRE (incluso en
+                             mobile) y pisaba al min-width:380px pensado solo para celular
+                             -- eso era lo que generaba el desborde/scroll raro en la captura.
+                             Con table-layout:fixed + columnas en %, la tabla siempre entra
+                             en el ancho disponible, sin necesitar ningún min-width. */
+    border-collapse: collapse;
+}
+
+.tabla-notas-global th:first-child,
+.tabla-notas-global td:first-child {
+    width: 58%;
+}
+
+.tabla-notas-global th:last-child,
+.tabla-notas-global td:last-child {
+    width: 42%;
 }
 
 table {
@@ -467,19 +492,29 @@ th, td {
     vertical-align: middle;
 }
 
-td div {
+/* td div {
     display: flex;
-    flex-direction: row; /* Mantiene los botones lado a lado */
+    flex-direction: row; 
     gap: 6px;
     justify-content: center;
     align-items: center;
-}
+} */
 
 .btn-tabla {
-    padding: 8px 12px !important;
-    font-size: .8rem !important;
-    /* width: auto !important; */
+    padding: 8px 12px;
+    font-size: .8rem;
     white-space: nowrap; /* Evita que el texto del botón se parta en dos renglones */
+}
+
+.contenedor-guardado-general{
+    margin-top:20px;
+    display:flex;
+    justify-content:flex-end;
+
+}
+
+.contenedor-guardado-general button{
+    max-width:320px;
 }
 
 /* --- REGLA PARA PANTALLAS GRANDES (COMPUTADORAS) --- */
@@ -491,7 +526,7 @@ td div {
 
     .grupo-busqueda input { flex: 2; }
     .grupo-busqueda select { flex: 1; }
-    .grupo-busqueda button { width: auto !important; }
+    .grupo-busqueda button { width: auto; }
 
     th, td {
         font-size: 0.95rem; 
@@ -502,20 +537,27 @@ td div {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
     }
+
+    /* En pantallas grandes la columna "Calificación" (42% de un contenedor ancho)
+       le sobra espacio al select; lo topeamos para que no se vea estirado. */
+    .select-nota-alumno {
+        max-width: 220px;
+        margin: 0 auto;
+    }
 }
 
 
 /* --- DISEÑO DEL MÓDULO DE NOTAS POR MATERIAS --- */
 .grid-filtros-notas {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    /* grid-template-columns: repeat(3, 1fr); */
-    gap: 15px;
-    background: #f8fafc;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    margin-top: 15px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:20px;
+    padding:20px;
+    margin-top:20px;
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    border-radius:10px;
+    align-items:end;
 }
 
 .cabecera-modulo {
@@ -538,7 +580,11 @@ td div {
 /* Selectores de nota dentro de la grilla */
 .select-nota-alumno {
     width: 100%;
-    max-width: 250px;
+    max-width: 100%; /* Antes era 250px fijo y sin media query, así que se aplicaba
+                         siempre -- incluso en mobile, empujando el ancho de la columna
+                         y contribuyendo al desborde. Ahora respeta el ancho real de su
+                         columna (definida en .tabla-notas-global), tanto en mobile como
+                         en desktop. */
     padding: 8px 12px;
     border: 1px solid #cbd5e1;
     border-radius: 6px;

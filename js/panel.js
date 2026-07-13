@@ -1,5 +1,16 @@
 let alumnoSeleccionadoId = null;
 
+// Escapa caracteres especiales de HTML para poder insertar datos de la base
+// dentro de innerHTML / atributos sin riesgo de romper el marcado o exponer a XSS
+function escapeHTML(texto) {
+    return String(texto ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // RANGOS PRE-ESTABLECIDOS POR LA INSTITUCIÓN
 const LISTA_CURSOS = [
     "1ro 1ra", "1ro 2da", "1ro 3ra", "2do 1ra", "2do 2da", "2do 3ra", 
@@ -166,15 +177,42 @@ function configurarComponentesInterfaz() {
 }
 
 // --- BÚSQUEDA ---
+// Limpia el texto que escribe la preceptora antes de insertarlo en el filtro .or() de PostgREST.
+// La sintaxis de PostgREST usa ',', '.', '(', ')' y ':' como caracteres de control del propio
+// filtro, y '%' / '_' como comodines de ILIKE. Si el término de búsqueda trae alguno de esos
+// caracteres "crudo", puede romper la consulta o alterar el comportamiento del ILIKE.
+// Como acá solo se busca por DNI, nombre o apellido, alcanza con permitir letras (con acentos/ñ),
+// números, espacios y guiones, y descartar cualquier otra cosa.
+function sanitizarTerminoBusqueda(texto) {
+    return texto
+        .normalize('NFC')
+        .replace(/[^\p{L}\p{N}\s-]/gu, '') // solo letras, números, espacios y guiones
+        .trim()
+        .slice(0, 60); // límite razonable de longitud
+}
+
 async function ejecutarBusqueda() {
-    const termino = document.getElementById("input-busqueda").value.trim();
+    const terminoOriginal = document.getElementById("input-busqueda").value.trim();
+    const termino = sanitizarTerminoBusqueda(terminoOriginal);
     const cursoSeleccionado = document.getElementById("select-filtro-curso").value;
     const tabla = document.getElementById("resultados-estudiantes");
 
+    // Antes: al ejecutar una nueva búsqueda, el panel de edición del alumno
+    // seleccionado anteriormente (boletín, intensificaciones, recursadas, etc.)
+    // seguía visible con sus datos viejos. Lo ocultamos y reseteamos acá para
+    // que cada nueva búsqueda arranque "limpia", sin datos de un alumno anterior.
+    ocultarPanelEdicionAlumno();
+
     // Si ambos campos de control están vacíos, no hacemos nada
     if (!termino && !cursoSeleccionado) {
-    tabla.innerHTML = `<tr class="fila-mensaje"><td colspan="4" class="text-center celda-mensaje">Buscando en los registros...</td></tr>`; 
-    return;
+        if (terminoOriginal) {
+            // El usuario escribió algo, pero eran todos caracteres no permitidos
+            // (símbolos, puntuación, etc.) y la sanitización los descartó.
+            tabla.innerHTML = `<tr class="fila-mensaje"><td colspan="4" class="text-center celda-mensaje">Usá solo letras, números y espacios para buscar.</td></tr>`;
+        } else {
+            tabla.innerHTML = `<tr class="fila-mensaje"><td colspan="4" class="text-center celda-mensaje">Buscando en los registros...</td></tr>`;
+        }
+        return;
     }
 
     tabla.innerHTML = `<tr><td colspan="4" class="text-center celda-mensaje">Buscando en los registros...</td></tr>`;
@@ -207,15 +245,24 @@ async function ejecutarBusqueda() {
         }
 
         // Renderizar el listado con los botones de gestión y eliminación de alumnos
+        // (usamos data-* + listeners en vez de onclick="...('${valor}')" para que apellidos
+        // con apóstrofes, comillas u otros caracteres especiales no rompan el HTML generado)
         tabla.innerHTML = data.map(est => `
             <tr>
-                <td data-label="DNI">${est.dni}</td>
-                <td data-label="Nombre y Apellido"><b>${est.apellido.toUpperCase()}, ${est.nombre}</b></td>
-                <td data-label="Curso">${est.curso_actual}</td>
+                <td data-label="DNI">${escapeHTML(est.dni)}</td>
+                <td data-label="Nombre y Apellido"><b>${escapeHTML(est.apellido.toUpperCase())}, ${escapeHTML(est.nombre)}</b></td>
+                <td data-label="Curso">${escapeHTML(est.curso_actual)}</td>
                 <td data-label="Acciones">
                      <div class="botones-buscador-estudiantes">
-                         <button class="btn-principal btn-tabla btn-azul" onclick="seleccionarEstudiante('${est.id}', '${est.nombre} ${est.apellido}', '${est.dni}', '${est.curso_actual}', '${est.observaciones || ''}')">Gestionar ⚙️</button>
-                         <button class="btn-secundario btn-tabla" style="color: var(--color-error); border: 1px solid #fca5a5; background: #fff5f5; padding: 4px 8px;" onclick="window.eliminarEstudianteDeRaiz('${est.id}', '${est.apellido.toUpperCase()}')">Borrar 🗑️</button>
+                         <button class="btn-principal btn-tabla btn-azul btn-gestionar"
+                                 data-id="${escapeHTML(est.id)}"
+                                 data-nombre="${escapeHTML(est.nombre + ' ' + est.apellido)}"
+                                 data-dni="${escapeHTML(est.dni)}"
+                                 data-curso="${escapeHTML(est.curso_actual)}"
+                                 data-obs="${escapeHTML(est.observaciones || '')}">Gestionar ⚙️</button>
+                         <button class="btn-secundario btn-tabla btn-borrar" style="color: var(--color-error); border: 1px solid #fca5a5; background: #fff5f5; padding: 4px 8px;"
+                                 data-id="${escapeHTML(est.id)}"
+                                 data-apellido="${escapeHTML(est.apellido.toUpperCase())}">Borrar 🗑️</button>
                    </div>
                 </td>
             </tr>
@@ -226,6 +273,22 @@ async function ejecutarBusqueda() {
         tabla.innerHTML = `<tr class="fila-mensaje"><td colspan="4" class="text-center celda-mensaje" style="color: var(--color-error);">Error al conectar con los registros de Supabase.</td></tr>`;
     }
 }
+
+// Delegación de eventos para los botones "Gestionar" y "Borrar" de la tabla de resultados
+// (se registra una sola vez; funciona aunque la tabla se vuelva a renderizar con nuevos datos)
+document.addEventListener("click", (e) => {
+    const btnGestionar = e.target.closest(".btn-gestionar");
+    if (btnGestionar) {
+        const d = btnGestionar.dataset;
+        seleccionarEstudiante(d.id, d.nombre, d.dni, d.curso, d.obs);
+        return;
+    }
+
+    const btnBorrar = e.target.closest(".btn-borrar");
+    if (btnBorrar) {
+        window.eliminarEstudianteDeRaiz(btnBorrar.dataset.id, btnBorrar.dataset.apellido);
+    }
+});
 
 
 
@@ -245,7 +308,41 @@ window.eliminarEstudianteDeRaiz = async function(idAlumno, apellido) {
 
 
 
+// Oculta y resetea por completo el panel de edición (boletín/intensificar/recursar/obs)
+// del alumno que estuviera seleccionado antes. Se llama tanto al ejecutar una nueva
+// búsqueda como al empezar a seleccionar un alumno distinto, para no dejar a la vista
+// datos de un alumno que ya no es el que se está gestionando.
+function ocultarPanelEdicionAlumno() {
+    alumnoSeleccionadoId = null;
+    document.getElementById("seccion-edicion-alumno").classList.add("oculto");
+    document.getElementById("nombre-alumno-sel").textContent = "--";
+    document.getElementById("dni-alumno-sel").textContent = "--";
+    document.getElementById("curso-alumno-sel").textContent = "--";
+
+    const textareaObs = document.getElementById("textarea-obs");
+    if (textareaObs) textareaObs.value = "";
+
+    document.getElementById("tabla-edicion-boletin").innerHTML = "";
+    const listaInt = document.getElementById("lista-int-cargar");
+    if (listaInt) listaInt.innerHTML = "";
+    const listaRec = document.getElementById("lista-rec-cargar");
+    if (listaRec) listaRec.innerHTML = "";
+
+    // Volvemos siempre a la pestaña "Boletín" para que el próximo alumno
+    // que se seleccione arranque desde la misma pestaña por defecto.
+    if (typeof window.cambiarPestana === "function") {
+        window.cambiarPestana("pestana-boletin");
+    }
+}
+
 async function seleccionarEstudiante(id, nombre, dni, curso, obs) {
+    // Si ya había otro alumno cargado, limpiamos su panel antes de mostrar
+    // los datos del nuevo para que no se mezclen ni queden restos visibles
+    // mientras se cargan boletín/intensificaciones/recursadas del alumno nuevo.
+    if (alumnoSeleccionadoId && alumnoSeleccionadoId !== id) {
+        ocultarPanelEdicionAlumno();
+    }
+
     alumnoSeleccionadoId = id;
     document.getElementById("seccion-edicion-alumno").classList.remove("oculto");
     document.getElementById("nombre-alumno-sel").textContent = nombre;
@@ -264,14 +361,10 @@ async function seleccionarEstudiante(id, nombre, dni, curso, obs) {
 }
 
 // Llenar el selector de intensificación/recursada solo con las materias del curso correspondiente
-async function inicializarAutocompletarMaterias(cursoAlumno) {
-    const { data: materias } = await window.supabaseCliente.from('materias').select('*').eq('curso', cursoAlumno).order('nombre_materia');
-    const optionsHTML = (materias || []).map(m => `<option value="${m.nombre_materia}">${m.nombre_materia.toUpperCase()} (${m.siglas})</option>`).join('');
-    
-    document.querySelectorAll(".select-materias-autocompletar").forEach(select => {
-        select.innerHTML = optionsHTML || `<option value="">-- No hay materias en este curso --</option>`;
-    });
-}
+// (Implementación real de inicializarAutocompletarMaterias más abajo, cerca del final del archivo.
+// Antes había 3 declaraciones de la misma función en este archivo; en JS gana la última,
+// así que las 2 anteriores nunca se ejecutaban. Se dejaron unificadas en una sola versión
+// que sí filtra por curso del alumno.)
 
 // --- BOLETÍN CON SELECTS (TEA, TEP, TED) Y LOGICA DE NÚMEROS ENTEROS DEL 1 AL 10 ---
 async function cargarBoletinEdicion() {
@@ -416,11 +509,6 @@ window.cargarRecursadasEdicion = async function() {
     }
 };
 
-async function inicializarAutocompletarMaterias(curso) {
-    // Esta función también la busca el botón Gestionar para los desplegables
-    console.log("Inicializando autocompletado para el curso:", curso);
-}
-
 // 1. FUNCIÓN PARA CAMBIAR ENTRE PESTAÑAS (Boletín, Intensificar, Recursar, Obs)
 window.cambiarPestana = function(pestanaId) {
     console.log("Cambiando a la pestaña:", pestanaId);
@@ -530,19 +618,21 @@ window.guardarFilaBoletin = async function(materiaId) {
     }
 };
 
-// --- REEMPLAZAR EN TU PANEL.JS ---
 async function inicializarAutocompletarMaterias(cursoEstudiante) {
-    console.log("Cargando lista de materias para autocompletar...");
+    console.log("Cargando lista de materias para autocompletar del curso:", cursoEstudiante);
     
     const selectIntMateria = document.getElementById("int-materia");
     const selectRecMateria = document.getElementById("rec-materia");
     const selectIntDestino = document.getElementById("int-materia-destino");
 
     try {
-        // Traemos las materias de Supabase
+        // Traemos de Supabase solo las materias que pertenecen al curso del alumno seleccionado
+        // (antes esta consulta traía TODAS las materias de la escuela sin filtrar, permitiendo
+        // elegir por error materias de otros cursos/años)
         const { data: materias, error } = await window.supabaseCliente
             .from('materias')
             .select('*')
+            .eq('curso', cursoEstudiante)
             .order('nombre_materia');
 
         if (error) throw error;
