@@ -84,6 +84,82 @@ section.tarjeta-panel.barra-acciones {
     grid-column: span 2;
 }
 
+.contenedor-guardado-general{
+    margin-top:20px;
+    display:flex;
+    justify-content:flex-end;
+}
+
+.contenedor-guardado-general button{
+    max-width:320px;
+}
+
+/* Regla base para los botones "Gestionar" / "Borrar" del buscador de estudiantes.
+   Antes esta clase SOLO existía dentro del @media (max-width:600px) de más abajo,
+   así que en cualquier resolución mayor a 600px (ej. 900px) el div quedaba sin
+   ninguna regla de layout: volvía al comportamiento por defecto de un <div> en bloque,
+   y como los <button> tienen width:100% por defecto (estilos.css), terminaban
+   apilados uno debajo del otro ocupando todo el ancho -- el bug que se ve en la captura.
+   Esta regla base los pone en fila (side by side) en cualquier tamaño de pantalla;
+   el bloque mobile de abajo solo ajusta detalles (padding, tamaño de fuente) para celular. */
+.botones-buscador-estudiantes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.botones-buscador-estudiantes button {
+    width: auto;
+}
+
+/* Regla base (diseño de escritorio) del módulo "Cargar Notas por Materia".
+   Antes estaba declarada DESPUÉS del @media (max-width:600px) de abajo, sin ningún
+   media query propio -- entonces, a cualquier ancho de pantalla (incluido mobile),
+   esta versión "ganaba" el cascade por aparecer más tarde en el archivo, pisando
+   por completo la versión de una sola columna pensada para celular (grid-template-columns:1fr).
+   Moviéndola ACÁ, antes del bloque mobile, se restablece el orden correcto: esta
+   es la base, y el media query de abajo la sobreescribe solo en pantallas chicas. */
+.grid-filtros-notas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    margin-top: 20px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    align-items: end;
+}
+
+/* Regla base del encabezado del módulo de notas (título + botón "CERRAR").
+   Mismo problema que arriba: estaba declarada después del bloque mobile sin media
+   query, pisando el flex-direction:column pensado para celular (el título y el
+   botón de cerrar quedaban en fila en vez de apilados). */
+.cabecera-modulo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+/* Regla base del botón "CERRAR ✕" del módulo de notas.
+   Mismo problema: sus colores/paddings estaban declarados después del bloque
+   mobile sin media query. No afectaba el ancho (el mobile no perdía su width:100%
+   porque esta regla no declara "width"), pero sí generaba la advertencia de
+   "regla inactiva" en la consola del navegador para cualquier propiedad que
+   ambas reglas compartieran. */
+.btn-cerrar {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: .6rem;
+    font-size: 0.85rem;
+}
+
 @media (max-width: 600px) {
     .grid-formulario {
         grid-template-columns: 1fr;
@@ -103,14 +179,6 @@ section.tarjeta-panel.barra-acciones {
 
     .tabla-gestion-estudiantes thead{
         display: none;
-    }
-
-    table:not(.tabla-gestion-estudiantes) {
-    /* min-width: 550px; */
-    }
-
-    .tabla-boletin-edicion {
-    /* min-width: 550px; */
     }
 
     #resultados-estudiantes,
@@ -185,7 +253,10 @@ section.tarjeta-panel.barra-acciones {
 
     /* Ajuste de tamaño exacto para los botones del buscador */
     .botones-buscador-estudiantes button {
-        padding: 5px 10px;
+        width: 100%; /* Solo en mobile: mantenemos el ancho completo que ya tenías,
+                        la regla base (arriba en el archivo, fuera del media query)
+                        ahora usa width:auto para pantallas más anchas */
+        padding: 12px 10px;
         font-size: .9rem;
         margin: 0 auto;
         display: block;
@@ -506,16 +577,10 @@ th, td {
     white-space: nowrap; /* Evita que el texto del botón se parta en dos renglones */
 }
 
-.contenedor-guardado-general{
-    margin-top:20px;
-    display:flex;
-    justify-content:flex-end;
-
-}
-
-.contenedor-guardado-general button{
-    max-width:320px;
-}
+/* .contenedor-guardado-general y su botón se movieron antes del @media (max-width:600px)
+   de arriba: estaban ACÁ, después del bloque mobile, por eso su valor (flex-end / 320px)
+   se aplicaba siempre -- incluso en celular -- y pisaba el "center" / "100%" pensado
+   para mobile. Ver la regla base más arriba en el archivo, justo antes del media query. */
 
 /* --- REGLA PARA PANTALLAS GRANDES (COMPUTADORAS) --- */
 @media (min-width: 768px) {
@@ -547,35 +612,11 @@ th, td {
 }
 
 
-/* --- DISEÑO DEL MÓDULO DE NOTAS POR MATERIAS --- */
-.grid-filtros-notas {
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    gap:20px;
-    padding:20px;
-    margin-top:20px;
-    background:#f8fafc;
-    border:1px solid #e2e8f0;
-    border-radius:10px;
-    align-items:end;
-}
-
-.cabecera-modulo {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #e2e8f0;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-}
-
-.btn-cerrar {
-    background: #ef4444;
-    color: white;
-    border: none;
-    padding: .6rem;
-    font-size: 0.85rem ;
-}
+/* .grid-filtros-notas, .cabecera-modulo y .btn-cerrar se movieron más arriba en el
+   archivo, antes del @media (max-width:600px), junto a los otros estilos "base" del
+   panel. Estaban duplicadas acá (sin media query) y, por aparecer después del bloque
+   mobile, pisaban sus overrides -- esa era la causa de que la consola mostrara varias
+   reglas mobile marcadas como inactivas/tachadas. */
 
 /* Selectores de nota dentro de la grilla */
 .select-nota-alumno {
