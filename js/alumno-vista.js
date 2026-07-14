@@ -31,6 +31,31 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("texto-observaciones").textContent = alumno.observaciones;
         }
 
+        // Cambiamos el título del documento: muchos navegadores usan el <title>
+        // como nombre sugerido de archivo al elegir "Guardar como PDF" desde el
+        // diálogo de impresión, así que en vez de "Mi Trayectoria Escolar" para
+        // todos los alumnos, sugerimos algo identificable para cada uno.
+        document.title = `Trayectoria - ${alumno.apellido}, ${alumno.nombre} (DNI ${alumno.dni})`;
+
+        // Botón "Descargar PDF": dispara la función de impresión del navegador.
+        // El usuario elige "Guardar como PDF" como destino de impresión, y como
+        // el reporte tiene su propia hoja de estilos para impresión (ver
+        // trayectoria.css, @media print), el resultado mantiene el mismo
+        // formato, logo y apartados que la página en pantalla.
+        const btnDescargarPdf = document.getElementById("btn-descargar-pdf");
+        if (btnDescargarPdf) {
+            btnDescargarPdf.addEventListener("click", () => {
+                const pieReporte = document.getElementById("pie-reporte");
+                if (pieReporte) {
+                    const ahora = new Date();
+                    const fecha = ahora.toLocaleDateString("es-AR");
+                    const hora = ahora.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+                    pieReporte.textContent = `Reporte generado el ${fecha} a las ${hora} hs — Sistema de Trayectorias Escolares, EEST N°5`;
+                }
+                window.print();
+            });
+        }
+
         const estudianteId = alumno.id;
 
         // 3. Consultar intensificaciones, recursadas y boletín de forma simultánea
@@ -84,7 +109,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const anioActual = new Date().getFullYear();
         const tituloBoletin = document.querySelector(".tarjeta-boletin h2");
         if (tituloBoletin) {
-            tituloBoletin.textContent = `📊 Boletín de Calificaciones Actual — ${alumno.curso_actual} (${anioActual})`;
+            tituloBoletin.textContent = `📊 Boletín de Calificaciones — ${alumno.curso_actual} (${anioActual})`;
         }
 
         if (resBoletin.data && resBoletin.data.length > 0) {

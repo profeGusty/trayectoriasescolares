@@ -14,6 +14,7 @@
     <div class="contenedor-trayectoria">
         <header class="encabezado-alumno">
             <button onclick="window.location.href='index.html'" class="btn-volver">⬅ Volver</button>
+            <img src="img/LOGO2.webp" alt="Logo EEST N°5" class="logo-encabezado-alumno">
             <h1 id="nombre-alumno">Cargando Estudiante...</h1>
             <p id="curso-alumno">Curso: --</p>
             <p id="dni-visual">DNI: --</p>
@@ -48,10 +49,10 @@
                         <thead>
                             <tr>
                                 <th>Materia</th>
-                                <th>1er Inf. Avance</th>
+                                <th>1er Inf</th>
                                 <th>1er Cuat.</th>
-                                <th>2do Inf. Avance</th>
-                                <th>2do Cuat.</th>
+                                <th>2do Inf</th>
+                                <th>2do Cuat</th>
                                 <th>Nota Anual</th>
                                 <th>Nota Final</th>
                             </tr>
@@ -65,11 +66,18 @@
                 </div>
             </section>
             
-            <div style="margin-top: 25px; text-align: center;">
+            <div class="acciones-pie-pantalla" style="margin-top: 25px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                 <button onclick="window.location.href='index.html'" class="btn-secundario" style="max-width: 200px; padding: 12px; font-weight: bold; border: 1px solid #cbd5e1;">
                     ⬅ Volver al Inicio / Salir
                 </button>
+                <button id="btn-descargar-pdf" class="btn-principal" style="max-width: 200px; padding: 12px; font-weight: bold;">
+                    📄 Descargar PDF
+                </button>
             </div>
+
+            <!-- Pie del reporte: oculto en pantalla, visible solo al imprimir/descargar el PDF
+                 (ver .pie-reporte en trayectoria.css). Sirve como constancia de cuándo se generó. -->
+            <p id="pie-reporte" class="pie-reporte"></p>
 
         </main>
     </div>

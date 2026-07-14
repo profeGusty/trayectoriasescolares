@@ -18,6 +18,15 @@
     margin-top: 10px;
 }
 
+.logo-encabezado-alumno {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    display: block;
+    margin: 10px auto 0;
+    border-radius: 8px;
+}
+
 .btn-volver {
     background: rgba(255, 255, 255, 0.2);
     color: white;
@@ -27,15 +36,21 @@
     font-size: 0.9rem;
 }
 
+/* Pie del reporte con la fecha de generación: oculto en pantalla (solo tiene
+   sentido en el PDF impreso, ver @media print más abajo). */
+.pie-reporte {
+    display: none;
+}
+
 .bloques-trayectoria {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 10px;
 }
 
 .tarjeta-bloque {
     background: white;
-    padding: 20px;
+    padding: 10px;
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.02);
 }
@@ -45,7 +60,7 @@
     color: var(--color-primario);
     border-bottom: 2px solid #f1f5f9;
     padding-bottom: 8px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .elemento-lista {
@@ -100,7 +115,7 @@ th {
 }
 
 td{
-    padding: 12px 10px;
+    padding: 8px;
     border-bottom: 1px solid #e2e8f0;
     color: #334155;
     font-size: 0.95rem;
@@ -146,4 +161,91 @@ tr:nth-child(even) {
     border-radius: 6px;
     padding: 4px 8px;
     border: 1px solid #bfdbfe;
+}
+
+/* ==========================================================================
+   REPORTE PDF (botón "Descargar PDF" -> window.print())
+   El botón dispara la función de impresión del navegador; el usuario elige
+   "Guardar como PDF" como destino. Así el PDF resultante es un espejo fiel de
+   esta misma página (mismo formato, logo y apartados), sin depender de
+   librerías externas para renderizarla de nuevo.
+   ========================================================================== */
+@media print {
+    /* estilos.css centra <body> con flexbox + min-height:100vh, pensado para
+       pantalla. En impresión eso puede generar espacios en blanco raros entre
+       páginas, así que volvemos al flujo normal de documento. */
+    body {
+        display: block;
+        min-height: 0;
+        background: white;
+        padding: 0;
+    }
+
+    .contenedor-trayectoria {
+        max-width: 100%;
+        margin: 0;
+    }
+
+    /* Elementos que solo tienen sentido en pantalla (navegación), no en el PDF */
+    .btn-volver,
+    .acciones-pie-pantalla {
+        display: none !important;
+    }
+
+    /* Muchos navegadores no imprimen colores de fondo por defecto; forzamos que
+       sí se impriman para conservar el mismo look (fondo azul del encabezado,
+       colores de TEA/TEP/TED, etc.) */
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .encabezado-alumno {
+        border-radius: 0;
+        margin-bottom: 15px;
+    }
+
+    /* Evita que una tarjeta (intensificaciones, boletín, etc.) quede cortada
+       a la mitad entre el final de una hoja y el comienzo de la siguiente */
+    .tarjeta-bloque {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #e2e8f0;
+    }
+
+    table {
+        break-inside: auto;
+    }
+
+    tr {
+        break-inside: avoid;
+    }
+
+    .pie-reporte {
+        display: block;
+        margin-top: 20px;
+        text-align: center;
+        font-size: 0.75rem;
+        color: #64748b;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 10px;
+    }
+
+    /* .tabla-responsiva usa overflow-x:auto para poder scrollear en celular,
+       pero en una hoja impresa no existe el scroll -- lo que se sale del ancho
+       quedaría directamente recortado. En impresión dejamos que se vea completa,
+       achicando la letra si hace falta en vez de cortar columnas del boletín. */
+    .tabla-responsiva {
+        overflow-x: visible;
+    }
+
+    .tarjeta-boletin table {
+        font-size: 0.78rem;
+    }
+
+    .tarjeta-boletin th,
+    .tarjeta-boletin td {
+        padding: 6px 4px;
+    }
 }

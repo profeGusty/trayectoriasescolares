@@ -4,6 +4,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const formLoginPersonal = document.getElementById("form-login-personal");
     const mensajeErrorPersonal = document.getElementById("mensaje-error-personal");
 
+    // Si venimos de un cierre de sesión automático (por inactividad, o por haber
+    // usado atrás/adelante del navegador -- ver panel.js), abrimos directamente
+    // el formulario de acceso del personal y mostramos el motivo, para que no
+    // parezca que la sesión "se perdió" sin explicación.
+    const parametros = new URLSearchParams(window.location.search);
+    const motivo = parametros.get("motivo");
+    if (seccionLoginPersonal && mensajeErrorPersonal) {
+        if (motivo === "inactividad") {
+            seccionLoginPersonal.classList.remove("oculto");
+            mensajeErrorPersonal.textContent = "Tu sesión se cerró automáticamente por inactividad. Volvé a ingresar tus datos.";
+        } else if (motivo === "navegacion") {
+            seccionLoginPersonal.classList.remove("oculto");
+            mensajeErrorPersonal.textContent = "Por seguridad, volvé a ingresar tus datos para continuar.";
+        }
+    }
+
     if (btnMostrarLogin && seccionLoginPersonal) {
         // Mostrar u ocultar el formulario de login al hacer clic en el botón
         btnMostrarLogin.addEventListener("click", () => {

@@ -1,5 +1,107 @@
 let alumnoSeleccionadoId = null;
 
+// Clave de localStorage compartida por el control de inactividad y por la
+// protección de historial de navegación (ver más abajo). Se declara acá arriba
+// de todo porque ambos mecanismos la necesitan.
+const CLAVE_ULTIMA_ACTIVIDAD = "panel_ultima_actividad";
+
+// PROTECCIÓN CONTRA VOLVER AL PANEL CON ATRÁS/ADELANTE DEL NAVEGADOR
+//
+// Por diseño, cualquier sitio con sesión (Gmail, este panel, etc.) deja pasar a
+// alguien con un token de sesión todavía válido, sin importar cómo haya llegado
+// a la página -- eso NO es un bug. Pero en una computadora COMPARTIDA de la
+// escuela, no cerrar sesión y que alcance con apretar "atrás"/"adelante" para
+// volver a entrar es un riesgo real. Por eso acá se decidió algo más estricto
+// que el comportamiento típico de la web: usar atrás/adelante para volver a esta
+// página SIEMPRE exige loguearse de nuevo, aunque la sesión de Supabase siga
+// siendo válida.
+//
+// Esto requiere cubrir DOS mecanismos distintos del navegador:
+//
+// 1) "bfcache": al usar atrás/adelante, muchos navegadores no vuelven a cargar
+//    la página ni disparan "DOMContentLoaded" -- la restauran tal cual estaba en
+//    memoria. Lo detectamos con el evento "pageshow" (persisted:true) y, en vez
+//    de solo recargar, primero cerramos la sesión activa y recién ahí recargamos
+//    -- así el control de acceso de más abajo no encuentra ninguna sesión válida.
+//
+// 2) Navegación atrás/adelante SIN bfcache (el navegador sí vuelve a pedir la
+//    página al servidor): acá "pageshow" no alcanza porque persisted da false.
+//    Lo detectamos con la Navigation Timing API (performance.getEntriesByType
+//    ("navigation")[0].type === "back_forward") y forzamos el mismo cierre de
+//    sesión antes de que el control de acceso llegue a correr.
+function esNavegacionAtrasAdelante() {
+    try {
+        const entradas = performance.getEntriesByType("navigation");
+        if (entradas.length > 0) return entradas[0].type === "back_forward";
+    } catch (e) { /* Navigation Timing API no disponible */ }
+    // Fallback para navegadores muy viejos que no soportan la API moderna
+    if (window.performance && performance.navigation) {
+        return performance.navigation.type === performance.navigation.TYPE_BACK_FORWARD;
+    }
+    return false;
+}
+
+async function forzarNuevoLoginPorHistorialNavegador() {
+    await window.supabaseCliente.auth.signOut();
+    localStorage.removeItem(CLAVE_ULTIMA_ACTIVIDAD);
+    window.location.href = "index.html?motivo=navegacion";
+}
+
+window.addEventListener("pageshow", async (event) => {
+    if (event.persisted) {
+        await window.supabaseCliente.auth.signOut();
+        localStorage.removeItem(CLAVE_ULTIMA_ACTIVIDAD);
+        window.location.reload();
+    }
+});
+
+// CIERRE DE SESIÓN AUTOMÁTICO POR INACTIVIDAD
+// Pensado para compus compartidas de la escuela: si nadie toca nada durante
+// TIEMPO_INACTIVIDAD_MS, se cierra la sesión sola aunque el token de Supabase
+// siga siendo técnicamente válido.
+const TIEMPO_INACTIVIDAD_MS = 20 * 60 * 1000; // 20 minutos
+
+// Guarda en localStorage el momento de la última actividad detectada.
+// Usamos localStorage (no una variable en memoria) para que el chequeo funcione
+// incluso si la pestaña se quedó en segundo plano o se volvió a abrir más tarde.
+function registrarActividad() {
+    localStorage.setItem(CLAVE_ULTIMA_ACTIVIDAD, Date.now().toString());
+}
+
+async function cerrarSesionPorInactividad() {
+    await window.supabaseCliente.auth.signOut();
+    localStorage.removeItem(CLAVE_ULTIMA_ACTIVIDAD);
+    window.location.href = "index.html?motivo=inactividad";
+}
+
+// Arranca la detección de actividad y el chequeo periódico de inactividad.
+// Se llama una sola vez, ya confirmado que hay una sesión válida.
+function iniciarControlInactividad() {
+    registrarActividad();
+
+    // Throttle manual: no escribimos en localStorage más de una vez cada 5s,
+    // para no generar cientos de escrituras por segundo con el mousemove.
+    let ultimoRegistro = 0;
+    const eventosDeActividad = ["mousemove", "keydown", "click", "scroll", "touchstart"];
+    eventosDeActividad.forEach(ev => {
+        document.addEventListener(ev, () => {
+            const ahora = Date.now();
+            if (ahora - ultimoRegistro > 5000) {
+                ultimoRegistro = ahora;
+                registrarActividad();
+            }
+        }, { passive: true });
+    });
+
+    // Chequeamos cada 30 segundos si ya pasó el tiempo límite sin actividad
+    setInterval(() => {
+        const ultima = parseInt(localStorage.getItem(CLAVE_ULTIMA_ACTIVIDAD) || "0", 10);
+        if (Date.now() - ultima > TIEMPO_INACTIVIDAD_MS) {
+            cerrarSesionPorInactividad();
+        }
+    }, 30000);
+}
+
 // Escapa caracteres especiales de HTML para poder insertar datos de la base
 // dentro de innerHTML / atributos sin riesgo de romper el marcado o exponer a XSS
 function escapeHTML(texto) {
@@ -27,6 +129,16 @@ const LISTA_HORARIOS = [
 ];
 
 document.addEventListener("DOMContentLoaded", async () => {
+    // 0. Si se llegó a esta página con el botón atrás/adelante del navegador
+    // (sin pasar por el bfcache, que ya se maneja aparte en el listener de
+    // "pageshow" de más arriba), forzamos un nuevo login aunque la sesión
+    // siga siendo técnicamente válida. Ver la explicación completa al principio
+    // del archivo.
+    if (esNavegacionAtrasAdelante()) {
+        await forzarNuevoLoginPorHistorialNavegador();
+        return;
+    }
+
     // 1. CONTROL DE ACCESO
     const { data: { session } } = await window.supabaseCliente.auth.getSession();
     if (!session) {
@@ -34,6 +146,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         window.location.href = "index.html";
         return;
     }
+
+    // Aunque el token siga siendo válido, si ya pasó demasiado tiempo desde la
+    // última actividad registrada (por ejemplo: se dejó la pestaña abierta y
+    // nadie la tocó, o se volvió a abrir el navegador mucho después), cerramos
+    // la sesión en vez de dejar entrar directo.
+    const ultimaActividad = parseInt(localStorage.getItem(CLAVE_ULTIMA_ACTIVIDAD) || "0", 10);
+    if (ultimaActividad && (Date.now() - ultimaActividad > TIEMPO_INACTIVIDAD_MS)) {
+        await cerrarSesionPorInactividad();
+        return;
+    }
+
+    iniciarControlInactividad();
+
     // NUEVO: Ejecutar búsqueda en tiempo real cada vez que la preceptora cambie el curso en el desplegable
     document.getElementById("select-filtro-curso").addEventListener("change", ejecutarBusqueda);
 
@@ -53,6 +178,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 5. CERRAR SESIÓN
     document.getElementById("btn-cerrar-sesion").addEventListener("click", async () => {
         await window.supabaseCliente.auth.signOut();
+        localStorage.removeItem(CLAVE_ULTIMA_ACTIVIDAD);
         window.location.href = "index.html";
     });
 });
@@ -114,13 +240,53 @@ function inicializarSelectoresGlobales() {
     });
 }
 
+// Igual que con "Cargar Notas por Materia": mientras se está registrando un
+// estudiante nuevo no hace falta ver el buscador, así que lo ocultamos; al
+// cancelar (o al terminar de guardar) lo volvemos a mostrar.
+// (Están a nivel global -- no anidadas dentro de configurarComponentesInterfaz --
+// para que mostrarPanelCargaNotas/cerrarPanelCargaNotas, más abajo, puedan
+// llamarlas y así los dos paneles nunca queden abiertos al mismo tiempo.)
+function mostrarFormularioNuevoAlumno() {
+    // Si el panel de "Cargar Notas por Materia" está abierto, lo cerramos primero
+    // para que nunca queden los dos formularios abiertos a la vez y confundan al usuario.
+    cerrarPanelCargaNotas();
+
+    document.getElementById("seccion-nuevo-alumno").classList.remove("oculto");
+    const seccionBuscador = document.getElementById("seccion-buscador-estudiantes");
+    if (seccionBuscador) seccionBuscador.style.display = "none";
+    document.getElementById("seccion-nuevo-alumno").scrollIntoView({ behavior: 'smooth' });
+}
+
+function cerrarFormularioNuevoAlumno() {
+    document.getElementById("seccion-nuevo-alumno").classList.add("oculto");
+    document.getElementById("form-nuevo-estudiante").reset();
+    const seccionBuscador = document.getElementById("seccion-buscador-estudiantes");
+    if (seccionBuscador) seccionBuscador.style.display = "block";
+}
+
 function configurarComponentesInterfaz() {
     // Toggle Formulario Alumno
     const btnToggleAlumno = document.getElementById("btn-toggle-nuevo-alumno");
     const seccionAlumno = document.getElementById("seccion-nuevo-alumno");
+
     btnToggleAlumno.addEventListener("click", () => {
-        seccionAlumno.classList.toggle("oculto");
+        if (seccionAlumno.classList.contains("oculto")) {
+            mostrarFormularioNuevoAlumno();
+        } else {
+            cerrarFormularioNuevoAlumno();
+        }
     });
+
+    const btnCancelarNuevoAlumno = document.getElementById("btn-cancelar-nuevo-alumno");
+    if (btnCancelarNuevoAlumno) {
+        btnCancelarNuevoAlumno.addEventListener("click", cerrarFormularioNuevoAlumno);
+    } else {
+        // Si esto aparece en la consola, significa que panel.html no tiene el botón
+        // #btn-cancelar-nuevo-alumno -- probablemente estás usando una versión vieja
+        // de panel.html junto con esta versión más nueva de panel.js. Reemplazá
+        // panel.html por el archivo actualizado.
+        console.warn("No se encontró #btn-cancelar-nuevo-alumno en el HTML. ¿panel.html está actualizado?");
+    }
 
     // Formulario Nuevo Estudiante (Guardar, avisar y CERRAR de inmediato)
     document.getElementById("form-nuevo-estudiante").addEventListener("submit", async (e) => {
@@ -147,8 +313,7 @@ function configurarComponentesInterfaz() {
         }
 
         alert(`¡Estudiante ${apellido}, ${nombre} agregado con éxito!`);
-        document.getElementById("form-nuevo-estudiante").reset();
-        seccionAlumno.classList.add("oculto"); // Se cierra el formulario automáticamente
+        cerrarFormularioNuevoAlumno(); // Resetea el form, cierra la sección y vuelve a mostrar el buscador
         document.getElementById("input-busqueda").value = dni;
         ejecutarBusqueda();
     });
@@ -840,6 +1005,10 @@ window.eliminarMateriaEscuela = async function(materiaId) {
 
 // 1. Funciones básicas de apertura y cierre del panel visual
 function mostrarPanelCargaNotas() {
+    // Si el formulario de "Registrar Nuevo Estudiante" está abierto, lo cerramos
+    // primero para que nunca queden los dos formularios abiertos a la vez.
+    cerrarFormularioNuevoAlumno();
+
     document.getElementById("seccion-carga-notas").style.display = "block";
     document.getElementById("seccion-carga-notas").scrollIntoView({ behavior: 'smooth' });
     inicializarCursosCalificaciones();
