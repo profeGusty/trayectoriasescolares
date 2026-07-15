@@ -61,6 +61,8 @@
     display: flex;
     gap: 15px;
     flex-wrap: wrap;
+    justify-content:space-around;
+
 }
 
 .barra-acciones button {
@@ -196,6 +198,7 @@ section.tarjeta-panel.barra-acciones {
 
      .barra-acciones,section.tarjeta-panel.barra-acciones {
          flex-direction: column;
+        
     }
 
     .tabla-gestion-estudiantes thead{
@@ -549,7 +552,7 @@ section.tarjeta-panel.barra-acciones {
 .tabla-responsiva{
     width: 100%;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch; 
+    -webkit-overflow-scrolling: touch;
     margin-top: 20px;
     border: 1px solid #e2e8f0;
     border-radius: 10px;
@@ -583,14 +586,14 @@ table {
 
 th, td {
     padding: 10px 8px;
-    font-size: 0.85rem; 
+    font-size: 0.85rem;
     text-align: center;
     vertical-align: middle;
 }
 
 /* td div {
     display: flex;
-    flex-direction: row; 
+    flex-direction: row;
     gap: 6px;
     justify-content: center;
     align-items: center;
@@ -619,7 +622,7 @@ th, td {
     .grupo-busqueda button { width: auto; }
 
     th, td {
-        font-size: 0.95rem; 
+        font-size: 0.95rem;
         padding: 12px;
     }
 
