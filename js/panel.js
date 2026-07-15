@@ -167,6 +167,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 2. INYECTAR OPCIONES PREESTABLECIDAS EN LOS SELECTS DE LA PÁGINA
     inicializarSelectoresGlobales();
 
+    // Agregamos "EGRESADO" solo al filtro del buscador general, sin afectar
+    // los selects de inscripción/materia/recursada que no deben ofrecerlo
+    const selectFiltro = document.getElementById("select-filtro-curso");
+    if (selectFiltro) {
+        selectFiltro.insertAdjacentHTML('beforeend', '<option value="EGRESADO">EGRESADO</option>');
+    }
+
     // 3. BUSCADOR
     document.getElementById("btn-buscar").addEventListener("click", ejecutarBusqueda);
     document.getElementById("input-busqueda").addEventListener("keypress", (e) => { if (e.key === "Enter") ejecutarBusqueda(); });
@@ -340,6 +347,34 @@ function configurarComponentesInterfaz() {
             if(alumnoSeleccionadoId) cargarBoletinEdicion(); // Recargar grilla si había alguien abierto
         }
     });
+
+    // Modal Modificar Estudiante
+    document.getElementById("btn-cerrar-modal-modificar").addEventListener("click", cerrarModalModificarEstudiante);
+    document.getElementById("form-modificar-estudiante").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = document.getElementById("mod-est-id").value;
+        const apellido = document.getElementById("mod-apellido").value.trim();
+        const nombre = document.getElementById("mod-nombre").value.trim();
+        const dni = document.getElementById("mod-dni").value.trim();
+        const curso = document.getElementById("mod-curso").value;
+
+        try {
+            const { error } = await window.supabaseCliente
+                .from('estudiantes')
+                .update({ apellido, nombre, dni, curso_actual: curso })
+                .eq('id', id);
+
+            if (error) throw error;
+
+            alert("¡Datos del estudiante actualizados correctamente!");
+            cerrarModalModificarEstudiante();
+            cargarEstudiantesPorCursoParaEdicion(); // refresca la lista de este módulo
+
+        } catch (err) {
+            console.error("Error al modificar estudiante:", err.message);
+            alert("Error al guardar: " + (err.code === "23505" ? "El DNI ya existe en otro estudiante." : err.message));
+        }
+    });
 }
 
 // --- BÚSQUEDA ---
@@ -433,6 +468,8 @@ async function ejecutarBusqueda() {
                 <td data-label="Curso">${escapeHTML(est.curso_actual)}</td>
                 <td data-label="Acciones">
                      <div class="botones-buscador-estudiantes">
+                         <button class="btn-secundario btn-tabla" style="border:1px solid #cbd5e1;"
+                                 onclick="window.open('alumno.html?dni=${escapeHTML(est.dni)}', '_blank')">📋 Trayectoria</button>
                          <button class="btn-principal btn-tabla btn-azul btn-gestionar"
                                  data-id="${escapeHTML(est.id)}"
                                  data-nombre="${escapeHTML(est.nombre + ' ' + est.apellido)}"
@@ -1254,4 +1291,184 @@ async function guardarNotasGenerales() {
         btnGuardar.innerHTML = textoOriginal;
         btnGuardar.disabled = false;
     }
+}
+
+/* ==========================================================================
+   MÓDULO: VER / MODIFICAR ESTUDIANTES POR CURSO
+   ========================================================================== */
+
+const LISTA_CURSOS_CON_EGRESADO = [...LISTA_CURSOS, "EGRESADO"];
+
+function mostrarPanelVerEstudiantes() {
+    document.getElementById("seccion-ver-estudiantes").style.display = "block";
+    document.getElementById("seccion-buscador-estudiantes").style.display = "none"; // Ocultamos el buscador general
+    document.getElementById("seccion-ver-estudiantes").scrollIntoView({ behavior: 'smooth' });
+    inicializarSelectVerCurso();
+}
+
+
+function cerrarPanelVerEstudiantes() {
+    document.getElementById("seccion-ver-estudiantes").style.display = "none";
+    document.getElementById("seccion-buscador-estudiantes").style.display = "block"; // Volvemos a mostrar el buscador
+    document.getElementById("ver-select-curso").value = "";
+    document.getElementById("tbody-ver-estudiantes").innerHTML = `<tr><td colspan="4" class="text-center" style="padding:20px;color:#718096;">Seleccioná un curso para ver a sus estudiantes.</td></tr>`;
+    document.getElementById("bloque-guardar-cursos").style.display = "none";
+}
+
+function inicializarSelectVerCurso() {
+    const select = document.getElementById("ver-select-curso");
+    if (select.dataset.inicializado) return; // solo una vez
+    select.innerHTML = '<option value="">-- Elegir Curso --</option>' +
+        LISTA_CURSOS.map(c => `<option value="${c}">${c}</option>`).join('');
+    select.dataset.inicializado = "true";
+}
+
+async function cargarEstudiantesPorCursoParaEdicion() {
+    const curso = document.getElementById("ver-select-curso").value;
+    const tbody = document.getElementById("tbody-ver-estudiantes");
+    const bloqueGuardar = document.getElementById("bloque-guardar-cursos");
+
+    if (!curso) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center" style="padding:20px;color:#718096;">Seleccioná un curso para ver a sus estudiantes.</td></tr>`;
+        bloqueGuardar.style.display = "none";
+        return;
+    }
+
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center" style="padding:20px;">Cargando estudiantes...</td></tr>`;
+
+    try {
+        const { data, error } = await window.supabaseCliente
+            .from('estudiantes')
+            .select('*')
+            .eq('curso_actual', curso)
+            .order('apellido');
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center" style="padding:20px;color:#ef4444;">No hay estudiantes cargados en este curso.</td></tr>`;
+            bloqueGuardar.style.display = "none";
+            return;
+        }
+
+        tbody.innerHTML = data.map(est => `
+            <tr data-estudiante-id="${escapeHTML(est.id)}">
+                <td data-label="Apellido y Nombre"><b>${escapeHTML(est.apellido.toUpperCase())}, ${escapeHTML(est.nombre)}</b></td>
+                <td data-label="DNI">${escapeHTML(est.dni)}</td>
+                <td data-label="Curso">
+                    <select class="select-boletin select-curso-fila" data-id="${escapeHTML(est.id)}" data-curso-original="${escapeHTML(est.curso_actual)}">
+                        ${LISTA_CURSOS_CON_EGRESADO.map(c => `<option value="${c}" ${c === est.curso_actual ? 'selected' : ''}>${c}</option>`).join('')}
+                    </select>
+                </td>
+                <td data-label="Acciones">
+                    <div class="botones-buscador-estudiantes">
+                        <button class="btn-secundario btn-tabla" style="border:1px solid #cbd5e1;"
+                                onclick="window.open('alumno.html?dni=${escapeHTML(est.dni)}', '_blank')">📋Trayectoria</button>
+                        <button class="btn-principal btn-tabla btn-azul btn-modificar-estudiante"
+                                data-id="${escapeHTML(est.id)}"
+                                data-apellido="${escapeHTML(est.apellido)}"
+                                data-nombre="${escapeHTML(est.nombre)}"
+                                data-dni="${escapeHTML(est.dni)}"
+                                data-curso="${escapeHTML(est.curso_actual)}">Modificar ✏️</button>
+                        <button class="btn-secundario btn-tabla btn-borrar" style="color: var(--color-error); border: 1px solid #fca5a5; background: #fff5f5; padding: 4px 8px;"
+                                data-id="${escapeHTML(est.id)}"
+                                data-apellido="${escapeHTML(est.apellido.toUpperCase())}">Borrar 🗑️</button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+
+        bloqueGuardar.style.display = "flex";
+
+    } catch (err) {
+        console.error("Error al cargar estudiantes por curso:", err.message);
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center" style="padding:20px;color:#ef4444;">Error al conectar con Supabase.</td></tr>`;
+        bloqueGuardar.style.display = "none";
+    }
+}
+
+function cancelarCambiosCursos() {
+    document.querySelectorAll(".select-curso-fila").forEach(select => {
+        select.value = select.dataset.cursoOriginal;
+    });
+}
+
+async function guardarCambiosCursos() {
+    const selects = document.querySelectorAll(".select-curso-fila");
+    const cambios = [];
+
+    selects.forEach(select => {
+        const nuevoCurso = select.value;
+        const cursoOriginal = select.dataset.cursoOriginal;
+        if (nuevoCurso !== cursoOriginal) {
+            cambios.push({ id: select.dataset.id, curso_actual: nuevoCurso });
+        }
+    });
+
+    if (cambios.length === 0) {
+        alert("No hay cambios de curso para guardar.");
+        return;
+    }
+
+    if (!confirm(`¿Confirmás el cambio de curso de ${cambios.length} estudiante(s)?`)) return;
+
+    const btnGuardar = document.querySelector(".btn-guardar-cursos");
+    const textoOriginal = btnGuardar ? btnGuardar.innerHTML : null;
+    if (btnGuardar) {
+        btnGuardar.innerHTML = "Guardando... ⏳";
+        btnGuardar.disabled = true;
+    }
+
+    try {
+        const resultados = await Promise.all(cambios.map(c =>
+            window.supabaseCliente.from('estudiantes').update({ curso_actual: c.curso_actual }).eq('id', c.id)
+        ));
+
+        const conError = resultados.find(r => r.error);
+        if (conError) throw conError.error;
+
+        alert(`¡Se actualizó el curso de ${cambios.length} estudiante(s) correctamente!`);
+        cargarEstudiantesPorCursoParaEdicion(); // refresca (algunos ya no pertenecen a este curso)
+
+    } catch (err) {
+        console.error("Error al guardar cambios de curso:", err.message);
+        alert("Ocurrió un error al guardar los cambios de curso.");
+    } finally {
+        if (btnGuardar) {
+            btnGuardar.innerHTML = textoOriginal;
+            btnGuardar.disabled = false;
+        }
+    }
+}
+
+// --- MODAL MODIFICAR ESTUDIANTE ---
+document.addEventListener("click", (e) => {
+    const btnModificar = e.target.closest(".btn-modificar-estudiante");
+    if (btnModificar) {
+        const d = btnModificar.dataset;
+        abrirModalModificarEstudiante(d.id, d.apellido, d.nombre, d.dni, d.curso);
+    }
+});
+
+function inicializarSelectVerCurso() {
+    const select = document.getElementById("ver-select-curso");
+    if (select.dataset.inicializado) return; // solo una vez
+    select.innerHTML = '<option value="">-- Elegir Curso --</option>' +
+        LISTA_CURSOS_CON_EGRESADO.map(c => `<option value="${c}">${c}</option>`).join('');
+    select.dataset.inicializado = "true";
+}
+
+function abrirModalModificarEstudiante(id, apellido, nombre, dni, curso) {
+    inicializarSelectModCurso();
+    document.getElementById("mod-est-id").value = id;
+    document.getElementById("mod-apellido").value = apellido;
+    document.getElementById("mod-nombre").value = nombre;
+    document.getElementById("mod-dni").value = dni;
+    document.getElementById("mod-curso").value = curso;
+    document.getElementById("modal-modificar-estudiante").classList.remove("oculto");
+}
+
+function cerrarModalModificarEstudiante() {
+    document.getElementById("modal-modificar-estudiante").classList.add("oculto");
+    document.getElementById("form-modificar-estudiante").reset();
 }

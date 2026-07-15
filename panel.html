@@ -29,6 +29,7 @@
                     📝Cargar Notas por Materia 
             </button>
             <button id="btn-abrir-reporte-notas" class="btn-principal btn-azul">📄 Planilla por Materia</button>
+            <button id="btn-abrir-ver-estudiantes" class="btn-principal btn-azul" onclick="mostrarPanelVerEstudiantes()">👥Estudiantes por Curso</button>
         </section>
 
         <!-- PANEL DE CARGA MASIVA DE NOTAS (Oculto por defecto) -->
@@ -94,6 +95,42 @@
                 </div>
          
         </section>
+
+                    <!-- PANEL VER / MODIFICAR ESTUDIANTES POR CURSO (Oculto por defecto) -->
+            <section id="seccion-ver-estudiantes" class="tarjeta-panel" style="display: none;">
+                <div class="cabecera-modulo">
+                    <h3>Ver / Modificar Estudiantes por Curso</h3>
+                    <button class="btn-secundario btn-cerrar" onclick="cerrarPanelVerEstudiantes()">CERRAR ✕</button>
+                </div>
+
+                <div class="campo-grupo">
+                    <label for="ver-select-curso">Seleccionar Curso:</label>
+                    <select id="ver-select-curso" onchange="cargarEstudiantesPorCursoParaEdicion()">
+                        <option value="">-- Elegir Curso --</option>
+                    </select>
+                </div>
+
+                <div class="tabla-responsiva">
+                    <table class="tabla-gestion-estudiantes">
+                        <thead>
+                            <tr>
+                                <th>Apellido y Nombre</th>
+                                <th>DNI</th>
+                                <th>Curso</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-ver-estudiantes">
+                            <tr><td colspan="4" class="text-center" style="padding:20px;color:#718096;">Seleccioná un curso para ver a sus estudiantes.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="contenedor-guardado-general" id="bloque-guardar-cursos" style="display:none; gap: 10px;">
+                    <button type="button" class="btn-secundario" style="max-width:180px;" onclick="cancelarCambiosCursos()">Cancelar</button>
+                    <button type="button" class="btn-principal btn-verde btn-guardar-cursos" style="max-width:260px;" onclick="guardarCambiosCursos()">💾 Guardar Cambios</button>
+                </div>
+            </section>
 
 
         <!-- FORMULARIO NUEVO ESTUDIANTE (OCULTO POR DEFECTO) -->
@@ -172,7 +209,35 @@
                                 Cancelar
                             </button>
                       </div>
-        </div>
+                </div>
+
+                <!-- MODAL MODIFICAR ESTUDIANTE -->
+                <div id="modal-modificar-estudiante" class="oculto" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;">
+                    <div style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px;">
+                        <h3>Modificar Datos del Estudiante</h3>
+                        <form id="form-modificar-estudiante" style="display: grid; gap: 10px; margin-top: 15px;">
+                            <input type="hidden" id="mod-est-id">
+                            <div class="campo-grupo">
+                                <label>Apellido/s:</label>
+                                <input type="text" id="mod-apellido" required>
+                            </div>
+                            <div class="campo-grupo">
+                                <label>Nombre/s:</label>
+                                <input type="text" id="mod-nombre" required>
+                            </div>
+                            <div class="campo-grupo">
+                                <label>Número de DNI:</label>
+                                <input type="text" id="mod-dni" required pattern="[0-9]{7,8}">
+                            </div>
+                            <div class="campo-grupo">
+                                <label>Curso:</label>
+                                <select id="mod-curso" required></select>
+                            </div>
+                            <button type="submit" class="btn-principal">Guardar Cambios</button>
+                            <button type="button" id="btn-cerrar-modal-modificar" class="btn-secundario" style="margin-top: 5px;">Cancelar</button>
+                        </form>
+                    </div>
+                </div>
 
         <!-- BUSCADOR DE ESTUDIANTES -->
         <section class="tarjeta-panel" id="seccion-buscador-estudiantes">
