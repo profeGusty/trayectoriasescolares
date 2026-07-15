@@ -282,8 +282,18 @@ async function generarReportePDF() {
         // 5. Mostramos el PDF en una pestaña nueva: el visor del navegador ya
         //    incluye botones para imprimir y descargar sin que tengamos que
         //    programar nada extra.
-        const nombreArchivo = `Planilla_${curso}_${nombreMateria}.pdf`.replace(/\s+/g, "_");
-        const blobUrl = doc.output("bloburl");
+        // Armamos el nombre de archivo con curso + materia (sin acentos/caracteres
+        // raros para que no dé problemas al guardarlo en distintos sistemas operativos).
+        const nombreArchivo = `${curso}_${nombreMateria}.pdf`
+            .replace(/\s+/g, "_")
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // saca tildes
+
+        // Envolvemos el PDF en un objeto File (no solo Blob) para que el nombre de
+        // archivo se respete tanto en la pestaña de vista previa como al descargarlo
+        // desde el visor de PDF del navegador.
+        const pdfBlob = doc.output("blob");
+        const archivoPDF = new File([pdfBlob], nombreArchivo, { type: "application/pdf" });
+        const blobUrl = URL.createObjectURL(archivoPDF);
         const ventana = window.open(blobUrl, "_blank");
 
         if (!ventana) {
